@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "4315782271",
+    "project_id": "bloodbond-app",
+    "storage_bucket": "bloodbond-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:4315782271:android:68a64611fca1abe6ddb34a",
+        "android_client_info": {
+          "package_name": "uk.ac.tees.mad.bloodbond"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAT1UPL4Qv0H61vN2R2xgY1KINqK6b83SU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

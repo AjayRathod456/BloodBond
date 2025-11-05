@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import uk.ac.tees.mad.bloodbond.ui.navigaion.Navigation
 import uk.ac.tees.mad.bloodbond.ui.theme.BloodbondTheme
 
 class MainActivity : ComponentActivity() {
@@ -26,12 +27,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             BloodbondTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                  Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center){
-                      Greeting(
-                          name = "Android",
-                          modifier = Modifier.padding(innerPadding)
-                      )
-                  }
+
+                    Navigation(modifier = Modifier.padding(innerPadding))
+
 
                 }
             }

@@ -9,7 +9,9 @@ val Pink80 = Color(0xFFEFB8C8)
 val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
+val BloodRedDark = Color(0xFF5E0000)
+val BloodRedLight = Color(0xFFFA6A6A)
 
-val BloodRed = Color(0xFFE53935)   // pick a strong red (close to blood color)
-val BloodDark = Color(0xFFB71C1C)  // darker shade
-val BloodLight = Color(0xFFD54D57) // lighter shade
+val pink = Color(0xFFF89494)
+val BackgroundLight = Color(0xFFFFFFFF)
+val BackgroundDark = Color(0xFF121212)
