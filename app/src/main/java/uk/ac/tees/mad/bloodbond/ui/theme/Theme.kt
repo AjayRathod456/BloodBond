@@ -34,7 +34,8 @@ private val DarkColors = darkColorScheme(
     onSurface = Color.White,
     error = BloodRedDark,
     onError = Color.Black,
-    onSurfaceVariant = pink
+    onSurfaceVariant = pink,
+    onTertiary = pinktransperent
 )
 @Composable
 fun BloodbondTheme(

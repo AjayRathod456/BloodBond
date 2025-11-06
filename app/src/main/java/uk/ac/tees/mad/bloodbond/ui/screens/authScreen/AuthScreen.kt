@@ -64,7 +64,7 @@ fun AuthScreen(
                     text = "Register As",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.background
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -73,7 +73,7 @@ fun AuthScreen(
                     text = "Register as Donor or Receiver" ,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.background,
+                    color = MaterialTheme.colorScheme.onPrimary
 
 
                 )
@@ -108,11 +108,11 @@ fun AuthScreen(
 
                 TextButton(
                     onClick = {
-//                        TODO()
+
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.background)
                 ) {
-                    Text("What happens after I register?")
+                    Text("What happens after I register?", color = MaterialTheme.colorScheme.onPrimary)
                 }
 
                 Spacer(Modifier.height(8.dp))
@@ -132,9 +132,9 @@ private fun RoleOption(
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp)
-            .clickable(onClick = {
-                dummy("")
-                onClick }),
+            .clickable(onClick =
+
+                onClick ),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         colors = CardDefaults.cardColors(
@@ -169,7 +169,7 @@ private fun RoleOption(
 
             Spacer(Modifier.width(16.dp))
 
-            // Text section
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
@@ -188,12 +188,9 @@ private fun RoleOption(
 
 
             ElevatedButton(
-                onClick = {
-                   dummy("")
+                onClick =
 
-
-
-                    onClick },
+                    onClick ,
                 modifier = Modifier
                     .width(100.dp)
                     .border(
@@ -214,6 +211,7 @@ private fun RoleOption(
                     "Select",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onPrimary
 
                     )
             }

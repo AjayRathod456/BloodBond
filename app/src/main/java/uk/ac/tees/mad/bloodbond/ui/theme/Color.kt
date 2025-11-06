@@ -13,5 +13,7 @@ val BloodRedDark = Color(0xFF5E0000)
 val BloodRedLight = Color(0xFFFA6A6A)
 
 val pink = Color(0xFFF89494)
+
 val BackgroundLight = Color(0xFFFFFFFF)
+val pinktransperent = Color(0xF7FA0000)
 val BackgroundDark = Color(0xFF121212)
