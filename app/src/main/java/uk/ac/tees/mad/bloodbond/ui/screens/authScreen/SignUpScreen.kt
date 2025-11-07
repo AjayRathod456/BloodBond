@@ -3,7 +3,15 @@ package uk.ac.tees.mad.bloodbond.ui.screens.authScreen
 
 import android.R.attr.textStyle
 import android.R.attr.tint
+import android.app.Activity
+import android.content.Intent
 import android.icu.text.CaseMap
+import android.os.Build
+import android.provider.MediaStore
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.wear.compose.material.dialog.DialogDefaults
+import coil3.Uri
 
 import uk.ac.tees.mad.bloodbond.ui.navigaion.Routes
 import kotlin.math.sin
@@ -49,6 +59,32 @@ fun SignUpScreen(
             Color(0xFFFC6A6A),
             Color(0xFFFF9D9D),
         )
+    )
+    val context = LocalContext.current
+
+    var selectedImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
+
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            if (uri != null) {
+                selectedImageUri = uri
+            } else {
+                Toast.makeText(context, "No image selected", Toast.LENGTH_SHORT).show()
+            }
+        }
+    )
+
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(),
+        onResult = { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val uri = result.data?.data
+                selectedImageUri = uri
+            }
+        }
     )
 
     var name by remember { mutableStateOf("") }
@@ -276,22 +312,44 @@ fun SignUpScreen(
                     if (showDialog) {
                         AlertDialog(
                             onDismissRequest = { showDialog = false },
-                            title = { Text("Select Document") },
-                            text = { Text("Choose an option to add your document") },
+                            title = { Text("Select Document",
+                                color = MaterialTheme.colorScheme.onSurface) },
+                            text = {
+                                Text(
+                                    "Choose an option to add your document",
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            },
                             confirmButton = {
                                 TextButton(onClick = {
-                                    // TODO: open camera
+
+
                                     showDialog = false
                                 }) {
-                                    Text("Camera")
+                                    Text("Camera",
+                                        color = MaterialTheme.colorScheme.onSurface)
                                 }
                             },
                             dismissButton = {
                                 TextButton(onClick = {
-                                    // TODO: open file picker
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                        // Android 13+ → Use Photo Picker
+                                        photoPickerLauncher.launch(
+                                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                        )
+                                    } else {
+                                        // Android 12- → Use Intent
+                                        val intent = Intent(
+                                            Intent.ACTION_PICK,
+                                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                                        )
+                                        galleryLauncher.launch(intent)
+                                    }
+
                                     showDialog = false
                                 }) {
-                                    Text("Storage")
+                                    Text("Storage",
+                                        color = MaterialTheme.colorScheme.onSurface)
                                 }
                             },
                             shape = RoundedCornerShape(16.dp),
@@ -306,7 +364,19 @@ fun SignUpScreen(
                 Spacer(Modifier.height(40.dp))
 
                 ElevatedButton(
-                    onClick = { },
+                    onClick = {
+                        if (name.isBlank() || email.isBlank() || password.isBlank() ||
+                            (title == "Donor" && selectedBloodGroup.isBlank())
+                        ) {
+
+                            Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT)
+                                .show()
+                        } else {
+//                            TODO
+                        }
+
+
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
