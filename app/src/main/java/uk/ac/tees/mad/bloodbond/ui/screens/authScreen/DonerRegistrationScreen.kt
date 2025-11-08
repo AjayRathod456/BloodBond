@@ -1,26 +1,24 @@
 package uk.ac.tees.mad.bloodbond.ui.screens.authScreen
 
 
-import android.R.attr.textStyle
-import android.R.attr.tint
+import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
-import android.icu.text.CaseMap
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -31,22 +29,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.navigation.NavController
-import androidx.wear.compose.material.dialog.DialogDefaults
-import coil3.Uri
+import coil3.compose.rememberAsyncImagePainter
 
 import uk.ac.tees.mad.bloodbond.ui.navigaion.Routes
-import kotlin.math.sin
+import java.io.File
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignUpScreen(
+fun DonerRegistrationScreen(
     navController: NavController,
     title: String,
 
@@ -61,39 +61,73 @@ fun SignUpScreen(
         )
     )
     val context = LocalContext.current
+    var showDialog by rememberSaveable { mutableStateOf(false) }
 
     var selectedImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
 
 
+    var isCameraGranted by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                    == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+//Permission
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        isCameraGranted = granted
+        if (granted) {
+
+        } else {
+
+        }
+    }
+
+// CAMERA
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            Log.d("CameraCapture", "Image saved at URI: $selectedImageUri")
+        }
+    }
+
+
+    if (selectedImageUri != null) {
+        Log.d("ImagePicker", "Selected Image URI: $selectedImageUri")
+    }
+
+//     android 13
     val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri ->
+        contract = ActivityResultContracts.PickVisualMedia(), onResult = { uri ->
             if (uri != null) {
                 selectedImageUri = uri
             } else {
                 Toast.makeText(context, "No image selected", Toast.LENGTH_SHORT).show()
             }
-        }
-    )
+        })
 
-
+//     android 12
     val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult(),
-        onResult = { result ->
+        contract = ActivityResultContracts.StartActivityForResult(), onResult = { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 val uri = result.data?.data
                 selectedImageUri = uri
+            } else {
+                Toast.makeText(context, "No image selected", Toast.LENGTH_SHORT).show()
             }
-        }
-    )
+        })
 
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var expanded by remember { mutableStateOf(false) }
+
+    var name by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var expanded by rememberSaveable { mutableStateOf(false) }
     val bloodGroups = listOf("A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-")
-    var selectedBloodGroup by remember { mutableStateOf("") }
-    var showDialog by remember { mutableStateOf(false) }
+    var selectedBloodGroup by rememberSaveable { mutableStateOf("") }
+
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -134,8 +168,7 @@ fun SignUpScreen(
                     onValueChange = { name = it },
                     label = {
                         Text(
-                            " $title Full Name",
-                            color = MaterialTheme.colorScheme.onPrimary
+                            " $title Full Name", color = MaterialTheme.colorScheme.onPrimary
                         )
                     },
                     shape = RoundedCornerShape(16.dp),
@@ -180,8 +213,7 @@ fun SignUpScreen(
                     onValueChange = { password = it },
                     label = {
                         Text(
-                            "$title Password",
-                            color = MaterialTheme.colorScheme.onPrimary
+                            "$title Password", color = MaterialTheme.colorScheme.onPrimary
                         )
                     },
                     shape = RoundedCornerShape(16.dp),
@@ -204,8 +236,7 @@ fun SignUpScreen(
 
 
                     ExposedDropdownMenuBox(
-                        expanded = expanded,
-                        onExpandedChange = { expanded = !expanded },
+                        expanded = expanded, onExpandedChange = { expanded = !expanded },
 
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -217,10 +248,8 @@ fun SignUpScreen(
                             label = { Text("Select Blood Group") },
                             trailingIcon = {
                                 Icon(
-                                    imageVector = if (expanded)
-                                        androidx.compose.material.icons.Icons.Filled.KeyboardArrowUp
-                                    else
-                                        androidx.compose.material.icons.Icons.Filled.KeyboardArrowDown,
+                                    imageVector = if (expanded) androidx.compose.material.icons.Icons.Filled.KeyboardArrowUp
+                                    else androidx.compose.material.icons.Icons.Filled.KeyboardArrowDown,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onPrimary
                                 )
@@ -260,12 +289,10 @@ fun SignUpScreen(
                                             color = MaterialTheme.colorScheme.onPrimary,
                                             modifier = Modifier.padding(start = 8.dp)
                                         )
-                                    },
-                                    onClick = {
+                                    }, onClick = {
                                         selectedBloodGroup = group
                                         expanded = false
-                                    },
-                                    modifier = Modifier
+                                    }, modifier = Modifier
                                         .background(Color.Transparent)
                                         .padding(
 
@@ -279,7 +306,7 @@ fun SignUpScreen(
                     }
 
 
-                    var selectedDocument by remember { mutableStateOf("") }
+
 
 
                     Spacer(Modifier.height(20.dp))
@@ -302,7 +329,7 @@ fun SignUpScreen(
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = "Select Document",
+                            text = if (selectedImageUri != null) "Document Is Selected" else "Select Document",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onPrimary
@@ -312,8 +339,11 @@ fun SignUpScreen(
                     if (showDialog) {
                         AlertDialog(
                             onDismissRequest = { showDialog = false },
-                            title = { Text("Select Document",
-                                color = MaterialTheme.colorScheme.onSurface) },
+                            title = {
+                                Text(
+                                    "Select Document", color = MaterialTheme.colorScheme.onSurface
+                                )
+                            },
                             text = {
                                 Text(
                                     "Choose an option to add your document",
@@ -323,22 +353,48 @@ fun SignUpScreen(
                             confirmButton = {
                                 TextButton(onClick = {
 
+                                    if (isCameraGranted) {
+
+                                        val file = File(
+                                            context.cacheDir,
+                                            "${System.currentTimeMillis()}.jpg"
+                                        )
+                                        val uri = FileProvider.getUriForFile(
+                                            context,
+                                            "${context.packageName}.provider",
+                                            file
+                                        )
+                                        selectedImageUri = uri
+                                        cameraLauncher.launch(uri)
+                                    } else {
+
+                                        permissionLauncher.launch(Manifest.permission.CAMERA)
+                                    }
 
                                     showDialog = false
                                 }) {
-                                    Text("Camera",
-                                        color = MaterialTheme.colorScheme.onSurface)
+                                    Text(
+                                        "Camera", color = MaterialTheme.colorScheme.onSurface
+                                    )
                                 }
+
+
+
+
+
                             },
                             dismissButton = {
                                 TextButton(onClick = {
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                        // Android 13+ → Use Photo Picker
+
+
                                         photoPickerLauncher.launch(
                                             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                                         )
+
+
                                     } else {
-                                        // Android 12- → Use Intent
+
                                         val intent = Intent(
                                             Intent.ACTION_PICK,
                                             MediaStore.Images.Media.EXTERNAL_CONTENT_URI
@@ -348,8 +404,9 @@ fun SignUpScreen(
 
                                     showDialog = false
                                 }) {
-                                    Text("Storage",
-                                        color = MaterialTheme.colorScheme.onSurface)
+                                    Text(
+                                        "Storage", color = MaterialTheme.colorScheme.onSurface
+                                    )
                                 }
                             },
                             shape = RoundedCornerShape(16.dp),
@@ -365,9 +422,7 @@ fun SignUpScreen(
 
                 ElevatedButton(
                     onClick = {
-                        if (name.isBlank() || email.isBlank() || password.isBlank() ||
-                            (title == "Donor" && selectedBloodGroup.isBlank())
-                        ) {
+                        if (name.isBlank() || email.isBlank() || password.isBlank() || (title == "Donor" && selectedBloodGroup.isBlank())) {
 
                             Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT)
                                 .show()
@@ -415,6 +470,8 @@ fun SignUpScreen(
                     )
                 }
             }
+
+
         }
     }
 }
@@ -427,3 +484,5 @@ private fun PreviewSignUpScreen() {
 
     }
 }
+
+

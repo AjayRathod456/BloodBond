@@ -1,24 +1,45 @@
 package uk.ac.tees.mad.bloodbond.ui.screens.authScreen
 
+
+
+
+import android.app.Activity
+import android.content.Intent
+import android.os.Build
+import android.provider.MediaStore
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+
 import uk.ac.tees.mad.bloodbond.ui.navigaion.Routes
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(title: String, navController: NavController) {
+fun ReceiverSignScreen(
+    navController: NavController,
+    title: String,
+
+
+    ) {
 
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(
@@ -27,9 +48,36 @@ fun LoginScreen(title: String, navController: NavController) {
             Color(0xFFFF9D9D),
         )
     )
+    val context = LocalContext.current
 
+    var selectedImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
+
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(), onResult = { uri ->
+            if (uri != null) {
+                selectedImageUri = uri
+            } else {
+                Toast.makeText(context, "No image selected", Toast.LENGTH_SHORT).show()
+            }
+        })
+
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(), onResult = { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val uri = result.data?.data
+                selectedImageUri = uri
+            }
+        })
+
+    var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var expanded by remember { mutableStateOf(false) }
+    val bloodGroups = listOf("A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-")
+    var selectedBloodGroup by remember { mutableStateOf("") }
+    var showDialog by remember { mutableStateOf(false) }
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -46,16 +94,17 @@ fun LoginScreen(title: String, navController: NavController) {
                 Spacer(Modifier.height(40.dp))
 
                 Text(
-                    text = "Welcome Back $title ",
+                    text = "Create a $title account",
                     color = MaterialTheme.colorScheme.onPrimary,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                )
+
+                    )
 
                 Spacer(Modifier.height(12.dp))
 
                 Text(
-                    text = "Log in to continue your journey",
+                    text = "Sign up to start your journey",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onPrimary
@@ -63,10 +112,15 @@ fun LoginScreen(title: String, navController: NavController) {
 
                 Spacer(Modifier.height(40.dp))
 
+
                 OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text("Email", color = MaterialTheme.colorScheme.onPrimary) },
+                    value = name,
+                    onValueChange = { name = it },
+                    label = {
+                        Text(
+                            " $title Full Name", color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    },
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -77,17 +131,43 @@ fun LoginScreen(title: String, navController: NavController) {
                         cursorColor = MaterialTheme.colorScheme.onPrimary
                     ),
                     textStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onPrimary),
-                    maxLines = 1
+                    singleLine = true,
+                )
+
+
+                Spacer(Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("$title Email", color = MaterialTheme.colorScheme.onPrimary) },
+                    shape = RoundedCornerShape(16.dp), // smoother corners
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.onPrimary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onPrimary,
+                        focusedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                        cursorColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    textStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onPrimary),
+                    singleLine = true,
                 )
 
                 Spacer(Modifier.height(16.dp))
 
                 OutlinedTextField(
+
+
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Password", color = MaterialTheme.colorScheme.onPrimary) },
-                    visualTransformation = PasswordVisualTransformation(),
+                    label = {
+                        Text(
+                            "$title Password", color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    },
                     shape = RoundedCornerShape(16.dp),
+
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.onPrimary,
@@ -97,14 +177,25 @@ fun LoginScreen(title: String, navController: NavController) {
                         cursorColor = MaterialTheme.colorScheme.onPrimary
                     ),
                     textStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onPrimary),
-                    maxLines = 1
-                )
+                    singleLine = true,
+
+                    )
+
+
 
                 Spacer(Modifier.height(40.dp))
 
                 ElevatedButton(
                     onClick = {
-//                        TODO
+                        if (name.isBlank() || email.isBlank() || password.isBlank() || (title == "Donor" && selectedBloodGroup.isBlank())) {
+
+                            Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT)
+                                .show()
+                        } else {
+//                            TODO
+                        }
+
+
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -113,10 +204,11 @@ fun LoginScreen(title: String, navController: NavController) {
                     elevation = ButtonDefaults.elevatedButtonElevation(defaultElevation = 6.dp),
                     colors = ButtonDefaults.elevatedButtonColors(
                         containerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+
+                        )
                 ) {
                     Text(
-                        "Log In $title",
+                        "Sign Up",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimary
@@ -128,18 +220,15 @@ fun LoginScreen(title: String, navController: NavController) {
                 TextButton(
                     onClick = {
 
-                        if (title == "Donor") {
-                            navController.navigate(Routes.DonerRegistrationScreen(title = title))
-                        } else {
-                            navController.navigate(Routes.ReceiverSignScreen(title = title))
-                        }
+
+                        navController.navigate(Routes.LogInScreen(title = title))
 
 
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.background)
                 ) {
                     Text(
-                        "Don’t have an account? Sign Up",
+                        "Already have an account? Log In",
                         color = MaterialTheme.colorScheme.onPrimary,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
@@ -150,9 +239,10 @@ fun LoginScreen(title: String, navController: NavController) {
     }
 }
 
+
 @Preview(showBackground = true)
 @Composable
-private fun PreviewLoginScreen() {
+private fun PreviewSignUpScreen() {
     MaterialTheme {
 
     }

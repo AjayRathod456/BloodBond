@@ -1,5 +1,6 @@
 package uk.ac.tees.mad.bloodbond.ui.navigaion
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
@@ -13,7 +14,8 @@ import androidx.navigation.toRoute
 import com.google.firebase.auth.FirebaseAuth
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthScreen
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.LoginScreen
-import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.SignUpScreen
+import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.DonerRegistrationScreen
+import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.ReceiverSignScreen
 
 
 @Composable
@@ -35,9 +37,19 @@ fun Navigation( modifier : Modifier = Modifier) {
 
         }
 
-        composable<Routes.SignInScreen> {
-            val args = it.toRoute<Routes.SignInScreen>()
-            SignUpScreen(
+        composable<Routes.DonerRegistrationScreen> {
+            val args = it.toRoute<Routes.DonerRegistrationScreen>()
+            DonerRegistrationScreen(
+                title = args.title,
+                navController = navController
+            )
+
+
+        }
+
+        composable<Routes.ReceiverSignScreen> {
+            val args = it.toRoute<Routes.DonerRegistrationScreen>()
+            ReceiverSignScreen(
                 title = args.title,
                 navController = navController
             )

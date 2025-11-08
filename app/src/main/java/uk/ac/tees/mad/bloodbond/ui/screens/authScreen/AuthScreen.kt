@@ -88,7 +88,7 @@ fun AuthScreen(
                     subtitle = "Donate blood",
                     icon = Icons.Default.Favorite,
                     onClick = {
-                        navController.navigate(Routes.SignInScreen("Donor"))
+                        navController.navigate(Routes.DonerRegistrationScreen("Donor"))
                     }
                 )
 
@@ -99,7 +99,7 @@ fun AuthScreen(
                     subtitle = "Request blood ",
                     icon = Icons.Default.Person,
                     onClick = {
-                            navController.navigate(Routes.SignInScreen(title = "Receiver"))
+                            navController.navigate(Routes.ReceiverSignScreen(title = "Receiver"))
                     }
                 )
 

@@ -1,6 +1,7 @@
 package uk.ac.tees.mad.bloodbond.ui.navigaion
 
 import android.R
+import android.net.Uri
 import kotlinx.serialization.Serializable
 
 
@@ -9,11 +10,17 @@ sealed class Routes {
     data object AuthScreen
 
     @Serializable
-    data class SignInScreen(val title:String)
+    data class DonerRegistrationScreen(val title:String)
 
     @Serializable
+    data class ReceiverSignScreen(val title:String)
+
+    @Serializable
+
     data class LogInScreen(val title:String)
     @Serializable
     data object HomeScreen
+
+
 
 }
