@@ -9,13 +9,5 @@ import coil3.compose.rememberAsyncImagePainter
 
 @Composable
 fun ImagePreview(selectedImageUri: Uri?) {
-    if (selectedImageUri != null) {
-        Image(
-            painter = rememberAsyncImagePainter(selectedImageUri),
-            contentDescription = "Selected Image",
-            modifier = Modifier
-                .size(200.dp), // adjust size as needed
-            contentScale = ContentScale.Crop
-        )
-    }
+
 }

@@ -3,6 +3,8 @@ package uk.ac.tees.mad.bloodbond.ui.screens.authScreen
 
 import android.Manifest
 import android.app.Activity
+import android.app.DatePickerDialog
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -17,8 +19,13 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -32,16 +39,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 import coil3.compose.rememberAsyncImagePainter
 
 import uk.ac.tees.mad.bloodbond.ui.navigaion.Routes
 import java.io.File
+import uk.ac.tees.mad.bloodbond.R
+import java.util.Calendar
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,6 +61,7 @@ import java.io.File
 fun DonerRegistrationScreen(
     navController: NavController,
     title: String,
+    authViewModel: AuthViewModel,
 
 
     ) {
@@ -61,15 +74,54 @@ fun DonerRegistrationScreen(
         )
     )
     val context = LocalContext.current
+
     var showDialog by rememberSaveable { mutableStateOf(false) }
 
-    var selectedImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
+
+//    File Initializer
+    val imageUri = rememberSaveable {
+
+        val imageFile = File.createTempFile(
+            "photo_", ".jpg", context.cacheDir
+        )
+
+        FileProvider.getUriForFile(
+            context, "${context.packageName}.provider", imageFile
+
+        )
+    }
+
+    val defaultUri = Uri.parse(
+        "${ContentResolver.SCHEME_ANDROID_RESOURCE}://${context.packageName}/${R.drawable.default_profile}"
+    )
 
 
+// URI
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val uri: Uri = if (selectedImageUri == null) {
+        defaultUri
+    } else {
+        selectedImageUri!!
+    }
+
+// CAMERA
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            selectedImageUri = imageUri
+
+        }
+    }
+
+
+//isPermission
     var isCameraGranted by remember {
         mutableStateOf(
-            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-                    == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(
+                context, Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED
         )
     }
 
@@ -78,28 +130,11 @@ fun DonerRegistrationScreen(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
         isCameraGranted = granted
-        if (granted) {
 
-        } else {
-
-        }
-    }
-
-// CAMERA
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture()
-    ) { success ->
-        if (success) {
-            Log.d("CameraCapture", "Image saved at URI: $selectedImageUri")
-        }
     }
 
 
-    if (selectedImageUri != null) {
-        Log.d("ImagePicker", "Selected Image URI: $selectedImageUri")
-    }
-
-//     android 13
+//android 13
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(), onResult = { uri ->
             if (uri != null) {
@@ -109,7 +144,7 @@ fun DonerRegistrationScreen(
             }
         })
 
-//     android 12
+//android 12
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult(), onResult = { result ->
             if (result.resultCode == Activity.RESULT_OK) {
@@ -127,17 +162,31 @@ fun DonerRegistrationScreen(
     var expanded by rememberSaveable { mutableStateOf(false) }
     val bloodGroups = listOf("A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-")
     var selectedBloodGroup by rememberSaveable { mutableStateOf("") }
+    var mobile by rememberSaveable { mutableStateOf("") }
+    var selectedDate by rememberSaveable { mutableStateOf("") }
 
 
     Surface(modifier = Modifier.fillMaxSize()) {
+
+
+        Box(modifier = Modifier.size(150.dp)) {
+
+        }
+
+
         Box(
             modifier = Modifier
                 .background(brush = backgroundBrush)
                 .fillMaxSize()
                 .padding(20.dp)
         ) {
+
+
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
@@ -206,15 +255,17 @@ fun DonerRegistrationScreen(
 
                 Spacer(Modifier.height(16.dp))
 
+
+
+
+
                 OutlinedTextField(
 
 
                     value = password,
                     onValueChange = { password = it },
                     label = {
-                        Text(
-                            "$title Password", color = MaterialTheme.colorScheme.onPrimary
-                        )
+                        Text("$title Mobile", color = MaterialTheme.colorScheme.onPrimary)
                     },
                     shape = RoundedCornerShape(16.dp),
 
@@ -230,8 +281,39 @@ fun DonerRegistrationScreen(
                     singleLine = true,
 
                     )
+
+                Spacer(Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = mobile,
+                    onValueChange = {
+
+                        if (it.length <= 10 && it.all { char -> char.isDigit() }) {
+                            mobile = it
+                        }
+                    },
+                    label = { Text("$title Mobile", color = MaterialTheme.colorScheme.onPrimary) },
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.onPrimary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onPrimary,
+                        focusedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                        cursorColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    textStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onPrimary),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number, // show numeric keypad
+                        imeAction = ImeAction.Next
+                    )
+                )
+
+
+
                 if (title == "Donor") {
-                    Spacer(Modifier.height(20.dp))
+                    Spacer(Modifier.height(16.dp))
 
 
 
@@ -248,8 +330,8 @@ fun DonerRegistrationScreen(
                             label = { Text("Select Blood Group") },
                             trailingIcon = {
                                 Icon(
-                                    imageVector = if (expanded) androidx.compose.material.icons.Icons.Filled.KeyboardArrowUp
-                                    else androidx.compose.material.icons.Icons.Filled.KeyboardArrowDown,
+                                    imageVector = if (expanded) Icons.Filled.KeyboardArrowUp
+                                    else Icons.Filled.KeyboardArrowDown,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onPrimary
                                 )
@@ -257,9 +339,9 @@ fun DonerRegistrationScreen(
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = MaterialTheme.colorScheme.onPrimary,
                                 unfocusedBorderColor = MaterialTheme.colorScheme.onPrimary,
-                                cursorColor = MaterialTheme.colorScheme.onPrimary,
                                 focusedLabelColor = MaterialTheme.colorScheme.onPrimary,
                                 unfocusedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                cursorColor = MaterialTheme.colorScheme.onPrimary
                             ),
                             textStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onPrimary),
                             modifier = Modifier
@@ -304,7 +386,53 @@ fun DonerRegistrationScreen(
 
 
                     }
+                    val calendar = Calendar.getInstance()
+                    val datePickerDialog = DatePickerDialog(
+                        context,
+                        { _, year, month, dayOfMonth ->
+                            selectedDate = "$dayOfMonth/${month + 1}/$year" // format: dd/MM/yyyy
+                        },
+                        calendar.get(Calendar.YEAR),
+                        calendar.get(Calendar.MONTH),
+                        calendar.get(Calendar.DAY_OF_MONTH)
+                    )
 
+                    Spacer(Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = selectedDate,
+                        onValueChange = { },
+                        trailingIcon = {
+                            Icon(
+                                Icons.Filled.KeyboardArrowDown,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        },
+                        readOnly = true,// read-only
+                        label = {
+                            Text(
+                                "$title  Last Date", color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        },
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { datePickerDialog.show() },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.onPrimary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onPrimary,
+                            focusedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                            cursorColor = MaterialTheme.colorScheme.onPrimary,
+                            disabledBorderColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        textStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onPrimary),
+                        singleLine = true,
+                        enabled = false
+
+                    )
+                    Spacer(Modifier.height(20.dp))
 
 
 
@@ -323,7 +451,7 @@ fun DonerRegistrationScreen(
                         )
                     ) {
                         Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Default.ExitToApp,
+                            imageVector = Icons.Default.ExitToApp,
                             contentDescription = "Select Document",
                             tint = MaterialTheme.colorScheme.onPrimary
                         )
@@ -332,7 +460,8 @@ fun DonerRegistrationScreen(
                             text = if (selectedImageUri != null) "Document Is Selected" else "Select Document",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = if (selectedImageUri != null) Color(0xFF4CAF50)
+                            else MaterialTheme.colorScheme.onPrimary
                         )
                     }
 
@@ -355,17 +484,8 @@ fun DonerRegistrationScreen(
 
                                     if (isCameraGranted) {
 
-                                        val file = File(
-                                            context.cacheDir,
-                                            "${System.currentTimeMillis()}.jpg"
-                                        )
-                                        val uri = FileProvider.getUriForFile(
-                                            context,
-                                            "${context.packageName}.provider",
-                                            file
-                                        )
-                                        selectedImageUri = uri
-                                        cameraLauncher.launch(uri)
+                                        cameraLauncher.launch(imageUri)
+
                                     } else {
 
                                         permissionLauncher.launch(Manifest.permission.CAMERA)
@@ -377,9 +497,6 @@ fun DonerRegistrationScreen(
                                         "Camera", color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
-
-
-
 
 
                             },
@@ -422,12 +539,37 @@ fun DonerRegistrationScreen(
 
                 ElevatedButton(
                     onClick = {
-                        if (name.isBlank() || email.isBlank() || password.isBlank() || (title == "Donor" && selectedBloodGroup.isBlank())) {
-
+                        if (name.isBlank() || email.isBlank() || password.isBlank() || (title == "Donor" && selectedBloodGroup.isBlank()) || mobile.isBlank() || selectedDate.isBlank()) {
+//
                             Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT)
                                 .show()
+
                         } else {
-//                            TODO
+
+
+                            authViewModel.signUp(
+                                title = title,
+                                bloodGroup = selectedBloodGroup,
+                                uri = uri,
+                                email = email,
+                                password = password,
+                                date = selectedDate,
+                                mobile = mobile,
+                                name = name,
+                                context = context,
+                                onSuccess = { message, booleanValue ->
+
+                                    if (booleanValue) {
+                                        navController.navigate(Routes.Profile)
+                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                    } else {
+
+
+                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                    }
+
+                                })
+
                         }
 
 
@@ -484,5 +626,10 @@ private fun PreviewSignUpScreen() {
 
     }
 }
+
+
+
+
+
 
 

@@ -16,10 +16,14 @@ sealed class Routes {
     data class ReceiverSignScreen(val title:String)
 
     @Serializable
-
     data class LogInScreen(val title:String)
     @Serializable
     data object HomeScreen
+
+
+
+    @Serializable
+    data object Profile
 
 
 

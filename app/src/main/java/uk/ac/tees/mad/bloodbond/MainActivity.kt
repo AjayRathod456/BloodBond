@@ -14,10 +14,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.viewmodel.compose.viewModel
 import uk.ac.tees.mad.bloodbond.ui.navigaion.Navigation
+import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthViewModel
 import uk.ac.tees.mad.bloodbond.ui.theme.BloodbondTheme
 
 class MainActivity : ComponentActivity() {
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
@@ -25,10 +30,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
+
+            val authViewModel: AuthViewModel = viewModel()
             BloodbondTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
 
-                    Navigation(modifier = Modifier.padding(innerPadding))
+                    Navigation(modifier = Modifier.padding(innerPadding),
+                    authViewModel = authViewModel)
 
 
                 }

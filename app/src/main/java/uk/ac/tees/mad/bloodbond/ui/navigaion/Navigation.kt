@@ -1,8 +1,10 @@
 package uk.ac.tees.mad.bloodbond.ui.navigaion
 
+import ProfileScreen
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -13,20 +15,22 @@ import androidx.navigation.toRoute
 
 import com.google.firebase.auth.FirebaseAuth
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthScreen
+import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthViewModel
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.LoginScreen
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.DonerRegistrationScreen
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.ReceiverSignScreen
 
 
+
 @Composable
-fun Navigation( modifier : Modifier = Modifier) {
+fun Navigation( modifier : Modifier = Modifier,authViewModel: AuthViewModel) {
 
 
     val navController: NavHostController = rememberNavController()
-    val firstScreen = if (FirebaseAuth.getInstance().currentUser?.uid != null) Routes.AuthScreen else Routes.HomeScreen
+    val firstScreen = if (FirebaseAuth.getInstance().currentUser?.uid != null) Routes.Profile else Routes.AuthScreen
 
 
-    NavHost(navController = navController, startDestination = Routes.AuthScreen) {
+    NavHost(navController = navController, startDestination =  firstScreen ) {
 
         composable<Routes.AuthScreen> {
 
@@ -41,7 +45,8 @@ fun Navigation( modifier : Modifier = Modifier) {
             val args = it.toRoute<Routes.DonerRegistrationScreen>()
             DonerRegistrationScreen(
                 title = args.title,
-                navController = navController
+                navController = navController,
+                authViewModel = authViewModel
             )
 
 
@@ -68,6 +73,14 @@ fun Navigation( modifier : Modifier = Modifier) {
 
 
         }
+
+        composable<Routes.Profile> {
+
+
+            ProfileScreen(viewModel  = authViewModel)
+
+        }
+
 
 
     }

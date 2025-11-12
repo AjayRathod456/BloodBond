@@ -70,7 +70,7 @@ fun AuthScreen(
                 Spacer(Modifier.height(8.dp))
 
                 Text(
-                    text = "Register as Donor or Receiver" ,
+                    text = "Register as Donor or Receiver",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onPrimary
@@ -99,7 +99,7 @@ fun AuthScreen(
                     subtitle = "Request blood ",
                     icon = Icons.Default.Person,
                     onClick = {
-                            navController.navigate(Routes.ReceiverSignScreen(title = "Receiver"))
+                        navController.navigate(Routes.ReceiverSignScreen(title = "Receiver"))
                     }
                 )
 
@@ -112,7 +112,10 @@ fun AuthScreen(
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.background)
                 ) {
-                    Text("What happens after I register?", color = MaterialTheme.colorScheme.onPrimary)
+                    Text(
+                        "What happens after I register?",
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
                 }
 
                 Spacer(Modifier.height(8.dp))
@@ -132,9 +135,11 @@ private fun RoleOption(
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp)
-            .clickable(onClick =
+            .clickable(
+                onClick =
 
-                onClick ),
+                    onClick
+            ),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         colors = CardDefaults.cardColors(
@@ -190,7 +195,7 @@ private fun RoleOption(
             ElevatedButton(
                 onClick =
 
-                    onClick ,
+                    onClick,
                 modifier = Modifier
                     .width(100.dp)
                     .border(
@@ -213,7 +218,7 @@ private fun RoleOption(
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onPrimary
 
-                    )
+                )
             }
         }
     }
@@ -227,7 +232,3 @@ private fun PreviewDonorReceiverSelectionScreen() {
     }
 }
 
-fun dummy(string: String){
-
-
-}

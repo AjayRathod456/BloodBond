@@ -74,4 +74,19 @@ dependencies {
 
     implementation("io.coil-kt.coil3:coil-compose:3.3.0")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.3.0")
+
+
+
+
+
+
+    implementation(platform("io.github.jan-tennert.supabase:bom:2.6.1"))
+
+
+    implementation("io.github.jan-tennert.supabase:storage-kt")
+
+
+// Networking
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
 }
