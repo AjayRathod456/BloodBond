@@ -1,10 +1,11 @@
 package uk.ac.tees.mad.bloodbond.ui.navigaion
 
+import DonorDetailScreen
 import ProfileScreen
-import androidx.compose.foundation.layout.Box
+
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
+
 
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -20,23 +21,25 @@ import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.LoginScreen
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.DonerRegistrationScreen
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.ReceiverSignScreen
 
+import uk.ac.tees.mad.bloodbond.ui.screens.otherScreens.HomeScreen
 
 
 @Composable
-fun Navigation( modifier : Modifier = Modifier,authViewModel: AuthViewModel) {
+fun Navigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel) {
 
 
     val navController: NavHostController = rememberNavController()
-    val firstScreen = if (FirebaseAuth.getInstance().currentUser?.uid != null) Routes.Profile else Routes.AuthScreen
+    val firstScreen =
+        if (FirebaseAuth.getInstance().currentUser?.uid != null) Routes.HomeScreen else Routes.AuthScreen
 
 
-    NavHost(navController = navController, startDestination =  firstScreen ) {
+    NavHost(navController = navController, startDestination = firstScreen) {
 
         composable<Routes.AuthScreen> {
 
             AuthScreen(
 
-                navController =navController
+                navController = navController
             )
 
         }
@@ -67,8 +70,8 @@ fun Navigation( modifier : Modifier = Modifier,authViewModel: AuthViewModel) {
 
             val args = it.toRoute<Routes.LogInScreen>()
             LoginScreen(
-                title =args.title,
-                navController =navController
+                title = args.title,
+                navController = navController
             )
 
 
@@ -77,10 +80,39 @@ fun Navigation( modifier : Modifier = Modifier,authViewModel: AuthViewModel) {
         composable<Routes.Profile> {
 
 
-            ProfileScreen(viewModel  = authViewModel)
+            ProfileScreen(viewModel = authViewModel)
 
         }
 
+        composable<Routes.Profile> {
+
+
+            ProfileScreen(viewModel = authViewModel)
+
+        }
+
+        composable<Routes.HomeScreen> {
+
+
+            HomeScreen(
+                viewModel = authViewModel,
+                navController = navController
+            )
+
+        }
+
+//        composable<Routes.DonorDetail> {
+//
+//            val args = it.toRoute<Routes.DonorDetail>()
+//            DonorDetailScreen(
+//                name = args.name,
+//                mobile = args.mobile,
+//                bloodGroup = args.bloodGroup,
+//                date = args.date,
+//                imageUrl = args.imageUrl
+//            )
+//
+//        }
 
 
     }

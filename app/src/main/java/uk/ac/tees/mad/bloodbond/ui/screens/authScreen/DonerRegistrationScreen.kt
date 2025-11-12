@@ -265,7 +265,7 @@ fun DonerRegistrationScreen(
                     value = password,
                     onValueChange = { password = it },
                     label = {
-                        Text("$title Mobile", color = MaterialTheme.colorScheme.onPrimary)
+                        Text("$title password", color = MaterialTheme.colorScheme.onPrimary)
                     },
                     shape = RoundedCornerShape(16.dp),
 
@@ -292,7 +292,7 @@ fun DonerRegistrationScreen(
                             mobile = it
                         }
                     },
-                    label = { Text("$title Mobile", color = MaterialTheme.colorScheme.onPrimary) },
+                    label = { Text("$title mobile", color = MaterialTheme.colorScheme.onPrimary) },
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -560,7 +560,7 @@ fun DonerRegistrationScreen(
                                 onSuccess = { message, booleanValue ->
 
                                     if (booleanValue) {
-                                        navController.navigate(Routes.Profile)
+                                        navController.navigate(Routes.HomeScreen)
                                         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                     } else {
 

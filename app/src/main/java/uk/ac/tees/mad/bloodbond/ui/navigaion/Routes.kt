@@ -17,6 +17,8 @@ sealed class Routes {
 
     @Serializable
     data class LogInScreen(val title:String)
+
+
     @Serializable
     data object HomeScreen
 
@@ -24,6 +26,16 @@ sealed class Routes {
 
     @Serializable
     data object Profile
+    @Serializable
+    data class DonorDetail(
+        val name: String,
+        val mobile: String,
+        val bloodGroup: String,
+        val date: String,
+        val imageUrl: String
+    )
+
+
 
 
 

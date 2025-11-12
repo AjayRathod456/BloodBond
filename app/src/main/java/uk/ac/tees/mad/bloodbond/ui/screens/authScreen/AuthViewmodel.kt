@@ -28,11 +28,14 @@ class AuthViewModel : ViewModel() {
     private val _donerData = MutableStateFlow(DonerData())
     val donerData: StateFlow<DonerData> = _donerData
 
+    private val _donorList = MutableStateFlow<List<DonerData>>(emptyList())
+    val donorList: StateFlow<List<DonerData>> = _donorList
+
 
     val db = FirebaseFirestore.getInstance()
     val auth: FirebaseAuth = FirebaseAuth.getInstance()
-    val user = auth.currentUser
-    val userId: String = user?.uid!!
+
+
     fun logoutUser() {
 
         auth.signOut()
@@ -57,33 +60,33 @@ class AuthViewModel : ViewModel() {
                 auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener { task ->
                     if (task.isSuccessful) {
 
+                        val user = auth.currentUser
+                        val userId = user?.uid
 
 
 
-                        val donerInfo = DonerInfo(
-                            title = title,
-                            imageUrl = "",
-                            bloodGroup = bloodGroup,
-                            mobNumber = "",
-                            name = name,
-                            email = email,
-                            uid = auth.currentUser?.uid!!,
-                            passkey = password,
-                            lastDate = date
+                        if (userId != null) {
 
-                        )
+                            val donerInfo = DonerInfo(
+                                title = title,
+                                imageUrl = "",
+                                bloodGroup = bloodGroup,
+                                mobNumber = mobile,
+                                name = name,
+                                email = email,
+                                uid = auth.currentUser?.uid!!,
+                                passkey = password,
+                                lastDate = date
 
-                        db.collection("doner").document(userId!!).set(donerInfo)
-                            .addOnSuccessListener {
-                                onSuccess("Signup successful", true)
-                            }
-                            .addOnFailureListener { exception ->
+                            )
+                            db.collection("doner").document(userId).set(donerInfo)
+                                .addOnSuccessListener {
+                                    onSuccess("Signup successful", true)
+                                }.addOnFailureListener { exception ->
 
-                                auth.currentUser?.delete()
-                            }
-
-
-
+                                    auth.currentUser?.delete()
+                                }
+                        }
 
                     } else {
                         val errorMessage = when (task.exception) {
@@ -123,20 +126,49 @@ class AuthViewModel : ViewModel() {
 
     fun fetchDonerData() {
         viewModelScope.launch {
-            try {
+            val user = auth.currentUser
+            val userId = user?.uid
 
-                val homeUserDatas =
-                    db.collection("doner").document(userId )
-                        .get().await()
+
+            userId?.let {
+                try {
+
+                    val homeUserDatas = db.collection("doner").document(userId).get().await()
                         .toObject(DonerData::class.java) ?: return@launch
 
 
-                _donerData.value = homeUserDatas
+                    _donerData.value = homeUserDatas
 
-            } catch (e: Exception) {
-                Log.e("USERDATA_ERROR", "Error fetching user data", e)
+                } catch (e: Exception) {
+                    Log.e("USERDATA_ERROR", "Error fetching user data", e)
+                }
             }
+
         }
+    }
+
+
+    fun fetchDonerDataList(bloodGroup: String) {
+        viewModelScope.launch {
+
+            try {
+                val query = if (bloodGroup == "All") {
+                    db.collection("doner")
+                } else {
+                    db.collection("doner").whereEqualTo("bloodGroup", bloodGroup)
+                }
+
+                val snapshot = query.get().await()
+                val donors = snapshot.toObjects(DonerData::class.java)
+                _donorList.value = donors
+            } catch (e: Exception) {
+                Log.e("Firestore", "Error fetching donors", e)
+            }
+
+
+        }
+
+
     }
 }
 
