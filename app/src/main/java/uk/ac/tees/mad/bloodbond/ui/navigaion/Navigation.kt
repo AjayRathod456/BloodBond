@@ -101,18 +101,18 @@ fun Navigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel) {
 
         }
 
-//        composable<Routes.DonorDetail> {
-//
-//            val args = it.toRoute<Routes.DonorDetail>()
-//            DonorDetailScreen(
-//                name = args.name,
-//                mobile = args.mobile,
-//                bloodGroup = args.bloodGroup,
-//                date = args.date,
-//                imageUrl = args.imageUrl
-//            )
-//
-//        }
+        composable<Routes.DonorDetail> {
+
+            val args = it.toRoute<Routes.DonorDetail>()
+            DonorDetailScreen(
+                name = args.name,
+                mobile = args.mobile,
+                bloodGroup = args.bloodGroup,
+                date = args.date,
+                imageUrl = args.imageUrl
+            )
+
+        }
 
 
     }
