@@ -9,15 +9,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.firestore.FirebaseFirestore
-import io.github.jan.supabase.createSupabaseClient
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import uk.ac.tees.mad.bloodbond.utils.SupabaseService
-import java.util.Date
 import kotlin.String
 import kotlin.jvm.java
 
@@ -69,15 +64,15 @@ class AuthViewModel : ViewModel() {
 
                             val donerInfo = DonerInfo(
                                 title = title,
-                                imageUrl = "",
                                 bloodGroup = bloodGroup,
                                 mobNumber = mobile,
                                 name = name,
                                 email = email,
                                 uid = auth.currentUser?.uid!!,
                                 passkey = password,
-                                lastDate = date
-
+                                lastDate = ,
+                                profileImageUrl = TODO(),
+                                idImageUrl = TODO()
                             )
                             db.collection("doner").document(userId).set(donerInfo)
                                 .addOnSuccessListener {
@@ -133,6 +128,7 @@ class AuthViewModel : ViewModel() {
             userId?.let {
                 try {
 
+
                     val homeUserDatas = db.collection("doner").document(userId).get().await()
                         .toObject(DonerData::class.java) ?: return@launch
 
@@ -175,17 +171,20 @@ class AuthViewModel : ViewModel() {
 
 data class DonerInfo(
     val title: String,
-    val imageUrl: String,
+    val profileImageUrl: String,
+    val idImageUrl: String,
     val bloodGroup: String,
     val mobNumber: String,
     val name: String,
     val email: String,
     val uid: String,
     val passkey: String,
-    val lastDate: String,
+    val lastDate: List<String>,
 )
 
 data class DonerData(
+    val idImageUrl: String = "",
+    val profileImageUrl: String =  "",
     val title: String = "",
     val imageUrl: String = "",
     val bloodGroup: String = "",
@@ -194,7 +193,7 @@ data class DonerData(
     val email: String = "",
     val uid: String = "",
     val passkey: String = "",
-    val lastDate: String = "",
+    val lastDate: List<String> = emptyList<String>(),
 )
 
 

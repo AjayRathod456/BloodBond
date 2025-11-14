@@ -1,7 +1,6 @@
 package uk.ac.tees.mad.bloodbond.ui.navigaion
 
 import DonorDetailScreen
-import ProfileScreen
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -77,25 +76,14 @@ fun Navigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel) {
 
         }
 
-        composable<Routes.Profile> {
 
-
-            ProfileScreen(viewModel = authViewModel)
-
-        }
-
-        composable<Routes.Profile> {
-
-
-            ProfileScreen(viewModel = authViewModel)
-
-        }
 
         composable<Routes.HomeScreen> {
 
 
             HomeScreen(
-                viewModel = authViewModel,
+
+                authViewModel = authViewModel,
                 navController = navController
             )
 

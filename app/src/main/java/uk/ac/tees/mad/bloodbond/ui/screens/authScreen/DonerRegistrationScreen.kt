@@ -155,15 +155,19 @@ fun DonerRegistrationScreen(
             }
         })
 
+    val bloodGroups = listOf("A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-")
 
+    var mobile by rememberSaveable { mutableStateOf("") }
     var name by rememberSaveable { mutableStateOf("") }
+    var selectedDate by rememberSaveable { mutableStateOf("") }
+
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var expanded by rememberSaveable { mutableStateOf(false) }
-    val bloodGroups = listOf("A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-")
+
     var selectedBloodGroup by rememberSaveable { mutableStateOf("") }
-    var mobile by rememberSaveable { mutableStateOf("") }
-    var selectedDate by rememberSaveable { mutableStateOf("") }
+
+
 
 
     Surface(modifier = Modifier.fillMaxSize()) {
@@ -361,6 +365,7 @@ fun DonerRegistrationScreen(
                             shape = RoundedCornerShape(24.dp)
 
                         ) {
+
                             bloodGroups.forEach { group ->
                                 DropdownMenuItem(
                                     text = {
