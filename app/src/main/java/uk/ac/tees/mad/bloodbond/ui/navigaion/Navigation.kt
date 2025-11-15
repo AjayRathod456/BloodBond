@@ -1,25 +1,21 @@
 package uk.ac.tees.mad.bloodbond.ui.navigaion
 
-import DonorDetailScreen
 
+
+import DonorDetailScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-
-
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-
 import com.google.firebase.auth.FirebaseAuth
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthScreen
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthViewModel
-import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.LoginScreen
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.DonerRegistrationScreen
+import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.LoginScreen
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.ReceiverSignScreen
-
 import uk.ac.tees.mad.bloodbond.ui.screens.otherScreens.HomeScreen
 
 
@@ -97,7 +93,9 @@ fun Navigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel) {
                 mobile = args.mobile,
                 bloodGroup = args.bloodGroup,
                 date = args.date,
-                imageUrl = args.imageUrl
+                imageUrl = args.imageUrl,
+                uid = args.uid,
+
             )
 
         }

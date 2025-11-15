@@ -8,23 +8,26 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import kotlin.String
-import kotlin.jvm.java
 
 
 class AuthViewModel : ViewModel() {
 
 
-    private val _donerData = MutableStateFlow(DonerData())
-    val donerData: StateFlow<DonerData> = _donerData
+    private val _donerdataListForbood = MutableStateFlow<List<DonerData>>(emptyList())
+    val donerdataListForbood: StateFlow<List<DonerData>> = _donerdataListForbood
 
     private val _donorList = MutableStateFlow<List<DonerData>>(emptyList())
     val donorList: StateFlow<List<DonerData>> = _donorList
+
+
+    private val _donerData = MutableStateFlow(DonerData())
+    val donerData: StateFlow<DonerData> = _donerData
 
 
     val db = FirebaseFirestore.getInstance()
@@ -70,9 +73,9 @@ class AuthViewModel : ViewModel() {
                                 email = email,
                                 uid = auth.currentUser?.uid!!,
                                 passkey = password,
-                                lastDate = ,
-                                profileImageUrl = TODO(),
-                                idImageUrl = TODO()
+                                lastDate = listOf(date),
+                                profileImageUrl = "",
+                                idImageUrl = ""
                             )
                             db.collection("doner").document(userId).set(donerInfo)
                                 .addOnSuccessListener {
@@ -112,33 +115,10 @@ class AuthViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 onSuccess("Unexpected error: ${e.localizedMessage}", false)
+
+
             }
 
-
-        }
-    }
-
-
-    fun fetchDonerData() {
-        viewModelScope.launch {
-            val user = auth.currentUser
-            val userId = user?.uid
-
-
-            userId?.let {
-                try {
-
-
-                    val homeUserDatas = db.collection("doner").document(userId).get().await()
-                        .toObject(DonerData::class.java) ?: return@launch
-
-
-                    _donerData.value = homeUserDatas
-
-                } catch (e: Exception) {
-                    Log.e("USERDATA_ERROR", "Error fetching user data", e)
-                }
-            }
 
         }
     }
@@ -146,7 +126,6 @@ class AuthViewModel : ViewModel() {
 
     fun fetchDonerDataList(bloodGroup: String) {
         viewModelScope.launch {
-
             try {
                 val query = if (bloodGroup == "All") {
                     db.collection("doner")
@@ -155,17 +134,113 @@ class AuthViewModel : ViewModel() {
                 }
 
                 val snapshot = query.get().await()
-                val donors = snapshot.toObjects(DonerData::class.java)
-                _donorList.value = donors
+
+                val donors = snapshot.documents.mapNotNull { doc ->
+                    val donor = doc.toObject(DonerData::class.java) ?: return@mapNotNull null
+                    val safeLastDate = (donor.lastDate ?: emptyList())
+                        .map { it.toString() } // ensure all elements are strings
+                        .sortedBy { it }
+                    donor.copy(lastDate = safeLastDate)
+                }
+
+                _donerdataListForbood.value = donors
+
             } catch (e: Exception) {
                 Log.e("Firestore", "Error fetching donors", e)
             }
-
-
         }
-
-
     }
+
+
+
+    fun fetchCurrentDonerData() = viewModelScope.launch {
+        auth.currentUser?.uid?.let { userId ->
+            try {
+                db.collection("doner").document(userId).get().await()
+                    .toObject(DonerData::class.java)
+                    ?.let { data ->
+                        _donerData.value = data.copy(
+                            lastDate = data.lastDate.filterIsInstance<String>().sortedBy { it }
+                        )
+                    }
+            } catch (e: Exception) {
+                Log.e("Firestore", "Error fetching current donor data", e)
+            }
+        }
+    }
+
+
+    fun updateData(
+        profileImageUrl: String,
+        bloodGroup: String,
+        name: String,
+        mobNumber: String,
+        lastDate: String,
+    ) {
+        viewModelScope.launch {
+            val userId = auth.currentUser?.uid ?: return@launch
+
+            try {
+                val updates = mapOf(
+                    "profileImageUrl" to profileImageUrl,
+                    "bloodGroup" to bloodGroup,
+                    "name" to name,
+                    "mobNumber" to mobNumber,
+                    "lastDate" to FieldValue.arrayUnion(lastDate) // append to array
+                )
+
+                db.collection("doner")
+                    .document(userId)
+                    .update(updates)
+                    .addOnSuccessListener {
+                        Log.d("FIRESTORE_UPDATE", "User data updated successfully")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("FIRESTORE_UPDATE", "Error updating user data", e)
+                    }
+
+            } catch (e: Exception) {
+                Log.e("FIRESTORE_UPDATE", "Exception updating user data", e)
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+    private val _lastDates = MutableStateFlow<List<String>>(emptyList())
+    val lastDates: StateFlow<List<String>> = _lastDates
+
+    fun fetchLastDates(uid: String) {
+        viewModelScope.launch {
+            try {
+                val snapshot = db.collection("doner")
+                    .document(uid)
+                    .get()
+                    .await()
+
+                // Get the full list of lastDate from Firestore
+                val lastDateList = snapshot.get("lastDate") as? List<*>
+                val safeLastDates: List<String> = lastDateList?.map { it.toString() } ?: emptyList()
+
+                _lastDates.value = safeLastDates
+
+            } catch (e: Exception) {
+                Log.e("Firestore", "Error fetching lastDate", e)
+                _lastDates.value = emptyList()
+            }
+        }
+    }
+
+
+
+
+
 }
 
 
@@ -184,7 +259,7 @@ data class DonerInfo(
 
 data class DonerData(
     val idImageUrl: String = "",
-    val profileImageUrl: String =  "",
+    val profileImageUrl: String = "",
     val title: String = "",
     val imageUrl: String = "",
     val bloodGroup: String = "",

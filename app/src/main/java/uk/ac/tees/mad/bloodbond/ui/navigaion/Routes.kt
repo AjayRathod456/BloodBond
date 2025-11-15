@@ -1,7 +1,5 @@
 package uk.ac.tees.mad.bloodbond.ui.navigaion
 
-import android.R
-import android.net.Uri
 import kotlinx.serialization.Serializable
 
 
@@ -32,7 +30,8 @@ sealed class Routes {
         val mobile: String,
         val bloodGroup: String,
         val date: String,
-        val imageUrl: String
+        val imageUrl: String,
+        val uid : String
     )
 
 
