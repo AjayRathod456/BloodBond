@@ -50,7 +50,7 @@ import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.DonerData
 @Composable
 fun HomePage(viewModel: AuthViewModel, navController: NavController) {
     var selectedGroup by remember { mutableStateOf("All") }
-    val donors = viewModel.donerdataListForbood.collectAsState().value
+    val donors = viewModel.donorDataListForBlood.collectAsState().value
 
     // Trigger fetch once
     LaunchedEffect(selectedGroup) {
@@ -154,19 +154,21 @@ fun HomePage(viewModel: AuthViewModel, navController: NavController) {
                     DonorItem(donor, onClick = {
 
                         val latestDate = donor.lastDate
-                            .map { it.toString() }       // convert all to strings
-                            .sorted()                    // ascending order
-                            .lastOrNull()                // get latest
+                            .map { it.toString() }
+                            .sorted()
+                            .lastOrNull()
                             ?: "No date"
 
-                        navController.navigate(Routes.DonorDetail(
-                            name = it.name,
-                            mobile = it.mobNumber,
-                            bloodGroup = it.bloodGroup,
-                            date = latestDate,
-                            imageUrl = it.imageUrl,
-                            uid = it.uid
-                        ))
+                        navController.navigate(
+                            Routes.DonorDetail(
+                                name = it.name,
+                                mobile = it.mobNumber,
+                                bloodGroup = it.bloodGroup,
+                                date = latestDate,
+                                imageUrl = it.imageUrl,
+                                uid = it.uid
+                            )
+                        )
                     })
                     Spacer(modifier = Modifier.height(12.dp))
                 }

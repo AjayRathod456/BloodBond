@@ -1,3 +1,4 @@
+
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
@@ -28,12 +29,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DonorDetailScreen(
+    viewModel: AuthViewModel,
     uid: String,
     name: String,
     mobile: String,
@@ -41,7 +42,7 @@ fun DonorDetailScreen(
     date: String,
     imageUrl: String,
 ) {
-    val viewModel: AuthViewModel = viewModel()
+
     val context = LocalContext.current
 
     // Fetch full donation history
@@ -128,7 +129,7 @@ fun DonorDetailScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Donation History List
+
             if (lastDates.isEmpty()) {
                 Text(
                     text = "No donation history",
@@ -138,7 +139,7 @@ fun DonorDetailScreen(
             } else {
                 lastDates.reversed().forEach { donationDate ->
                     Text(
-                        text = ":- $donationDate",
+                        text = "Donated At:- $donationDate",
                         fontSize = 18.sp,
                         color = MaterialTheme.colorScheme.onPrimary,
                         fontWeight = FontWeight.Medium,

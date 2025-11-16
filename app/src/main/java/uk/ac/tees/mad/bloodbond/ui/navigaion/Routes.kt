@@ -22,8 +22,10 @@ sealed class Routes {
 
 
 
-    @Serializable
-    data object Profile
+
+
+
+
     @Serializable
     data class DonorDetail(
         val name: String,

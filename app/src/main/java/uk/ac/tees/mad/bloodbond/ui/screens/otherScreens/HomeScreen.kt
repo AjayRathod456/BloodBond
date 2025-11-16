@@ -1,16 +1,15 @@
 package uk.ac.tees.mad.bloodbond.ui.screens.otherScreens
 
-import ProfilePage
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.AccountCircle
-
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -30,15 +29,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.navigation.NavController
-
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthViewModel
 
+
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
     authViewModel: AuthViewModel,
     navController: NavController,
+
 ) {
 
     val navItems = listOf(
@@ -60,8 +61,10 @@ fun HomeScreen(
 
 
         bottomBar = {
-            NavigationBar(modifier = Modifier.height(65.dp),
-                containerColor = Color(0xFFFC3E3E) ) {
+            NavigationBar(
+                modifier = Modifier.height(65.dp),
+                containerColor = Color(0xFFFC3E3E)
+            ) {
 
                 navItems.fastForEachIndexed() { index, navItem ->
                     val isSelected = selectedIndex == index
@@ -74,9 +77,9 @@ fun HomeScreen(
                             Icon(
                                 imageVector = if (isSelected) navItem.filledIcon else navItem.outlinedIcon,
                                 contentDescription = null,
-                                tint =  MaterialTheme.colorScheme.onPrimary
+                                tint = MaterialTheme.colorScheme.onPrimary
 
-                                )
+                            )
                         },
                         label = {
                             Text(
@@ -98,6 +101,7 @@ fun HomeScreen(
             selectedIndex = selectedIndex,
             navController = navController,
             authViewModel = authViewModel,
+
         )
 
 
@@ -107,12 +111,14 @@ fun HomeScreen(
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ContentScreen(
     modifier: Modifier = Modifier,
     selectedIndex: Int,
     navController: NavController,
     authViewModel: AuthViewModel,
+
 
 
     ) {
@@ -123,10 +129,10 @@ fun ContentScreen(
         )
 
 
-        1 -> ProfilePage(
-            viewModel = authViewModel
+        1 -> ProfileScreen(
+            viewModel = authViewModel,
+            navController = navController
         )
-
 
 
     }

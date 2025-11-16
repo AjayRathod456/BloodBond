@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
 
-    kotlin("plugin.serialization") version "2.2.20"
+    kotlin("plugin.serialization") version "2.2.10"
 
 }
 
@@ -56,6 +56,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.androidx.compose.material)
+    implementation(libs.ui)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -75,18 +76,12 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-compose:3.3.0")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.3.0")
 
+    implementation("com.google.code.gson:gson:2.11.0")
 
-
-
-
-
-    implementation(platform("io.github.jan-tennert.supabase:bom:2.6.1"))
-
-
-    implementation("io.github.jan-tennert.supabase:storage-kt")
-
-
-// Networking
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("io.github.jan-tennert.supabase:gotrue-kt:1.3.2")
+    implementation("io.github.jan-tennert.supabase:compose-auth:1.3.2")
+    implementation("io.github.jan-tennert.supabase:compose-auth-ui:1.3.2")
+    implementation("io.github.jan-tennert.supabase:storage-kt:1.3.2")
+    implementation("io.ktor:ktor-client-cio:2.3.4")
 
 }

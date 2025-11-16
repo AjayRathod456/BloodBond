@@ -10,24 +10,30 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import uk.ac.tees.mad.bloodbond.utils.SupabaseClientProvider
 
 
 class AuthViewModel : ViewModel() {
 
 
-    private val _donerdataListForbood = MutableStateFlow<List<DonerData>>(emptyList())
-    val donerdataListForbood: StateFlow<List<DonerData>> = _donerdataListForbood
+    private val _donorDataListForBlood = MutableStateFlow<List<DonerData>>(emptyList())
+    val donorDataListForBlood: StateFlow<List<DonerData>> = _donorDataListForBlood
+
 
     private val _donorList = MutableStateFlow<List<DonerData>>(emptyList())
     val donorList: StateFlow<List<DonerData>> = _donorList
 
 
-    private val _donerData = MutableStateFlow(DonerData())
-    val donerData: StateFlow<DonerData> = _donerData
+
+
+    private val _currentUserData = MutableStateFlow(DonerData())
+
+    val currentUserData : StateFlow<DonerData> = _currentUserData
 
 
     val db = FirebaseFirestore.getInstance()
@@ -124,26 +130,131 @@ class AuthViewModel : ViewModel() {
     }
 
 
+    fun ResSignUp(
+        title: String,
+        name: String,
+        email: String,
+        password: String,
+        onSuccess: (String, Boolean) -> Unit,
+        ) {
+        viewModelScope.launch {
+            try {
+                auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+
+                        val user = auth.currentUser
+                        val userId = user?.uid
+
+
+
+                        if (userId != null) {
+
+                            val donerInfo =  ResInfo(
+                                title = title,
+                                profileImageUrl = "",
+                                name = name,
+                                email = email,
+                                uid = userId,
+                                passkey = password
+                            )
+                            db.collection("doner").document(userId).set(donerInfo)
+                                .addOnSuccessListener {
+                                    onSuccess("Signup successful", true)
+                                }.addOnFailureListener { exception ->
+
+                                    auth.currentUser?.delete()
+                                }
+                        }
+
+                    } else {
+                        val errorMessage = when (task.exception) {
+
+
+                            is FirebaseAuthUserCollisionException -> {
+                                "  This email is already registered"
+                            }
+
+                            is FirebaseAuthWeakPasswordException -> {
+                                "Invalid email format"
+                            }
+
+                            else -> {
+
+                                task.exception?.localizedMessage ?: "Signup failed"
+
+
+                            }
+                        }
+
+                        onSuccess(errorMessage, true)
+
+
+                    }
+
+
+                }
+            } catch (e: Exception) {
+                onSuccess("Unexpected error: ${e.localizedMessage}", false)
+
+
+            }
+
+
+        }
+    }
+
+
+
+
+
+
+
+    fun logIn(
+        email: String,
+        passkey: String,
+        onResult: (String, Boolean) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                auth.signInWithEmailAndPassword(email, passkey)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            onResult("Login successful", true)
+                        } else {
+                            val errorMessage = task.exception?.localizedMessage ?: "Login failed"
+                            onResult(errorMessage, false)
+                        }
+                    }
+            } catch (e: Exception) {
+                onResult("Error: ${e.localizedMessage}", false)
+            }
+        }
+    }
+
+
+
     fun fetchDonerDataList(bloodGroup: String) {
         viewModelScope.launch {
             try {
-                val query = if (bloodGroup == "All") {
-                    db.collection("doner")
-                } else {
-                    db.collection("doner").whereEqualTo("bloodGroup", bloodGroup)
+                val query = when (bloodGroup) {
+                    "All" -> db.collection("doner")
+                        .whereEqualTo("title", "Donor") // fetch only Donors
+                    else -> db.collection("doner")
+                        .whereEqualTo("bloodGroup", bloodGroup)
+                        .whereEqualTo("title", "Donor") // filter by group + Donor
                 }
 
                 val snapshot = query.get().await()
 
                 val donors = snapshot.documents.mapNotNull { doc ->
                     val donor = doc.toObject(DonerData::class.java) ?: return@mapNotNull null
-                    val safeLastDate = (donor.lastDate ?: emptyList())
-                        .map { it.toString() } // ensure all elements are strings
-                        .sortedBy { it }
+                    val safeLastDate = donor.lastDate
+                        .map { it.toString() } // ensure strings
+                        .sortedBy { it } // sort if needed
                     donor.copy(lastDate = safeLastDate)
                 }
 
-                _donerdataListForbood.value = donors
+                _donorDataListForBlood.value = donors
 
             } catch (e: Exception) {
                 Log.e("Firestore", "Error fetching donors", e)
@@ -156,13 +267,12 @@ class AuthViewModel : ViewModel() {
     fun fetchCurrentDonerData() = viewModelScope.launch {
         auth.currentUser?.uid?.let { userId ->
             try {
-                db.collection("doner").document(userId).get().await()
-                    .toObject(DonerData::class.java)
-                    ?.let { data ->
-                        _donerData.value = data.copy(
-                            lastDate = data.lastDate.filterIsInstance<String>().sortedBy { it }
-                        )
-                    }
+                val snapshot = db.collection("doner").document(userId).get().await()
+                val data = snapshot.toObject(DonerData::class.java)
+
+                data?.let {
+                    _currentUserData.value = it
+                }
             } catch (e: Exception) {
                 Log.e("Firestore", "Error fetching current donor data", e)
             }
@@ -170,8 +280,10 @@ class AuthViewModel : ViewModel() {
     }
 
 
+
+
     fun updateData(
-        profileImageUrl: String,
+        profileByteArray: ByteArray,
         bloodGroup: String,
         name: String,
         mobNumber: String,
@@ -179,8 +291,14 @@ class AuthViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             val userId = auth.currentUser?.uid ?: return@launch
+            val fileName = "profile_images/$userId.jpg" // unique image per user
 
             try {
+
+                val bucket = SupabaseClientProvider.client.storage["profile_images"]
+                bucket.upload(fileName, profileByteArray, upsert = true)
+                val profileImageUrl = bucket.publicUrl(fileName)
+
                 val updates = mapOf(
                     "profileImageUrl" to profileImageUrl,
                     "bloodGroup" to bloodGroup,
@@ -204,13 +322,6 @@ class AuthViewModel : ViewModel() {
             }
         }
     }
-
-
-
-
-
-
-
 
 
     private val _lastDates = MutableStateFlow<List<String>>(emptyList())
@@ -238,9 +349,6 @@ class AuthViewModel : ViewModel() {
     }
 
 
-
-
-
 }
 
 
@@ -255,6 +363,16 @@ data class DonerInfo(
     val uid: String,
     val passkey: String,
     val lastDate: List<String>,
+)
+
+data class ResInfo(
+    val title: String,
+    val profileImageUrl: String,
+    val name: String,
+    val email: String,
+    val uid: String,
+    val passkey: String,
+
 )
 
 data class DonerData(
