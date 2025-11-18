@@ -28,13 +28,16 @@ sealed class Routes {
 
     @Serializable
     data class DonorDetail(
+        val idImageUrl : String,
         val name: String,
         val mobile: String,
         val bloodGroup: String,
         val date: String,
-        val imageUrl: String,
         val uid : String
     )
+    @Serializable
+    data class IdProofFullScreen (val url : String)
+
 
 
 

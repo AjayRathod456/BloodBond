@@ -165,7 +165,7 @@ fun HomePage(viewModel: AuthViewModel, navController: NavController) {
                                 mobile = it.mobNumber,
                                 bloodGroup = it.bloodGroup,
                                 date = latestDate,
-                                imageUrl = it.imageUrl,
+                                idImageUrl = it.idImageUrl,
                                 uid = it.uid
                             )
                         )

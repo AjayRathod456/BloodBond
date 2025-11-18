@@ -1,7 +1,5 @@
 package uk.ac.tees.mad.bloodbond.ui.screens.authScreen
 
-import android.content.Context
-import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -29,11 +27,9 @@ class AuthViewModel : ViewModel() {
     val donorList: StateFlow<List<DonerData>> = _donorList
 
 
-
-
     private val _currentUserData = MutableStateFlow(DonerData())
 
-    val currentUserData : StateFlow<DonerData> = _currentUserData
+    val currentUserData: StateFlow<DonerData> = _currentUserData
 
 
     val db = FirebaseFirestore.getInstance()
@@ -46,86 +42,123 @@ class AuthViewModel : ViewModel() {
 
     }
 
+    fun updateData(
+        profileByteArray: ByteArray,
+        bloodGroup: String,
+        name: String,
+        mobNumber: String,
+        lastDate: String,
+    ) {
+        viewModelScope.launch {
+            val userId = auth.currentUser?.uid ?: return@launch
+            val fileName = "profile_images/$userId.jpg" // unique image per user
+
+            try {
+
+                val bucket = SupabaseClientProvider.client.storage["profile_images"]
+                bucket.upload(fileName, profileByteArray, upsert = true)
+                val profileImageUrl = bucket.publicUrl(fileName)
+
+                val updates = mapOf(
+                    "profileImageUrl" to profileImageUrl,
+                    "bloodGroup" to bloodGroup,
+                    "name" to name,
+                    "mobNumber" to mobNumber,
+                    "lastDate" to FieldValue.arrayUnion(lastDate) // append to array
+                )
+
+                db.collection("doner")
+                    .document(userId)
+                    .update(updates)
+                    .addOnSuccessListener {
+                        Log.d("FIRESTORE_UPDATE", "User data updated successfully")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("FIRESTORE_UPDATE", "Error updating user data", e)
+                    }
+
+            } catch (e: Exception) {
+                Log.e("FIRESTORE_UPDATE", "Exception updating user data", e)
+            }
+        }
+    }
+
     fun signUp(
         title: String,
         bloodGroup: String,
-        uri: Uri,
+        byteArray: ByteArray,
         email: String,
         password: String,
         mobile: String,
         name: String,
-        context: Context,
         date: String,
-        onSuccess: (String, Boolean) -> Unit,
-
-        ) {
+        onResult: (String, Boolean) -> Unit,
+    ) {
         viewModelScope.launch {
             try {
-                auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
+                auth.createUserWithEmailAndPassword(email, password)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            val user = auth.currentUser
+                            val userId = user?.uid
 
-                        val user = auth.currentUser
-                        val userId = user?.uid
+                            if (userId != null) {
+                                // Upload ID proof image
 
 
+                                val fileName = "id_proof/$userId.jpg"
+                                val bucket = SupabaseClientProvider.client.storage["donor_id"]
+                                viewModelScope.launch {
+                                    try {
+                                        bucket.upload(fileName, byteArray, upsert = true)
 
-                        if (userId != null) {
 
-                            val donerInfo = DonerInfo(
-                                title = title,
-                                bloodGroup = bloodGroup,
-                                mobNumber = mobile,
-                                name = name,
-                                email = email,
-                                uid = auth.currentUser?.uid!!,
-                                passkey = password,
-                                lastDate = listOf(date),
-                                profileImageUrl = "",
-                                idImageUrl = ""
-                            )
-                            db.collection("doner").document(userId).set(donerInfo)
-                                .addOnSuccessListener {
-                                    onSuccess("Signup successful", true)
-                                }.addOnFailureListener { exception ->
-
-                                    auth.currentUser?.delete()
+                                    } catch (e: Exception) {
+                                        onResult("Image upload failed: ${e.localizedMessage}", false)
+                                    }
                                 }
+
+
+                                val idProofUrl = bucket.publicUrl(fileName)
+
+                                // Create donor info
+                                val donerInfo = DonerInfo(
+                                    title = title,
+                                    bloodGroup = bloodGroup,
+                                    mobNumber = mobile,
+                                    name = name,
+                                    email = email,
+                                    uid = userId,
+                                    passkey = password, // ⚠️ not recommended to store password in Firestore
+                                    lastDate = listOf(date),
+                                    profileImageUrl = "", // will update later
+                                    idImageUrl = idProofUrl
+                                )
+
+                                db.collection("doner").document(userId).set(donerInfo)
+                                    .addOnSuccessListener {
+                                        onResult("Signup successful", true)
+                                    }
+                                    .addOnFailureListener { exception ->
+                                        Log.e("SIGNUP_ERROR", "Firestore error: ", exception)
+                                        auth.currentUser?.delete() // rollback user creation
+                                        onResult("Failed to save user info", false)
+                                    }
+                            } else {
+                                onResult("User ID not found", false)
+                            }
+                        } else {
+                            val errorMessage = when (task.exception) {
+                                is FirebaseAuthUserCollisionException -> "This email is already registered"
+                                is FirebaseAuthWeakPasswordException -> "Password is too weak"
+                                else -> task.exception?.localizedMessage ?: "Signup failed"
+                            }
+                            onResult(errorMessage, false)
                         }
-
-                    } else {
-                        val errorMessage = when (task.exception) {
-
-
-                            is FirebaseAuthUserCollisionException -> {
-                                "  This email is already registered"
-                            }
-
-                            is FirebaseAuthWeakPasswordException -> {
-                                "Invalid email format"
-                            }
-
-                            else -> {
-
-                                task.exception?.localizedMessage ?: "Signup failed"
-
-
-                            }
-                        }
-
-                        onSuccess(errorMessage, true)
-
-
                     }
-
-
-                }
             } catch (e: Exception) {
-                onSuccess("Unexpected error: ${e.localizedMessage}", false)
-
-
+                onResult("Unexpected error: ${e.localizedMessage}", false)
             }
-
-
         }
     }
 
@@ -136,7 +169,7 @@ class AuthViewModel : ViewModel() {
         email: String,
         password: String,
         onSuccess: (String, Boolean) -> Unit,
-        ) {
+    ) {
         viewModelScope.launch {
             try {
                 auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener { task ->
@@ -149,7 +182,7 @@ class AuthViewModel : ViewModel() {
 
                         if (userId != null) {
 
-                            val donerInfo =  ResInfo(
+                            val donerInfo = ResInfo(
                                 title = title,
                                 profileImageUrl = "",
                                 name = name,
@@ -204,15 +237,10 @@ class AuthViewModel : ViewModel() {
     }
 
 
-
-
-
-
-
     fun logIn(
         email: String,
         passkey: String,
-        onResult: (String, Boolean) -> Unit
+        onResult: (String, Boolean) -> Unit,
     ) {
         viewModelScope.launch {
             try {
@@ -230,7 +258,6 @@ class AuthViewModel : ViewModel() {
             }
         }
     }
-
 
 
     fun fetchDonerDataList(bloodGroup: String) {
@@ -263,7 +290,6 @@ class AuthViewModel : ViewModel() {
     }
 
 
-
     fun fetchCurrentDonerData() = viewModelScope.launch {
         auth.currentUser?.uid?.let { userId ->
             try {
@@ -275,50 +301,6 @@ class AuthViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 Log.e("Firestore", "Error fetching current donor data", e)
-            }
-        }
-    }
-
-
-
-
-    fun updateData(
-        profileByteArray: ByteArray,
-        bloodGroup: String,
-        name: String,
-        mobNumber: String,
-        lastDate: String,
-    ) {
-        viewModelScope.launch {
-            val userId = auth.currentUser?.uid ?: return@launch
-            val fileName = "profile_images/$userId.jpg" // unique image per user
-
-            try {
-
-                val bucket = SupabaseClientProvider.client.storage["profile_images"]
-                bucket.upload(fileName, profileByteArray, upsert = true)
-                val profileImageUrl = bucket.publicUrl(fileName)
-
-                val updates = mapOf(
-                    "profileImageUrl" to profileImageUrl,
-                    "bloodGroup" to bloodGroup,
-                    "name" to name,
-                    "mobNumber" to mobNumber,
-                    "lastDate" to FieldValue.arrayUnion(lastDate) // append to array
-                )
-
-                db.collection("doner")
-                    .document(userId)
-                    .update(updates)
-                    .addOnSuccessListener {
-                        Log.d("FIRESTORE_UPDATE", "User data updated successfully")
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("FIRESTORE_UPDATE", "Error updating user data", e)
-                    }
-
-            } catch (e: Exception) {
-                Log.e("FIRESTORE_UPDATE", "Exception updating user data", e)
             }
         }
     }
@@ -373,13 +355,12 @@ data class ResInfo(
     val uid: String,
     val passkey: String,
 
-)
+    )
 
 data class DonerData(
     val idImageUrl: String = "",
     val profileImageUrl: String = "",
     val title: String = "",
-    val imageUrl: String = "",
     val bloodGroup: String = "",
     val mobNumber: String = "",
     val name: String = "",

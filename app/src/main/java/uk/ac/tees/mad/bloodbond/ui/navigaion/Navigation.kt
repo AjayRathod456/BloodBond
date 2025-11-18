@@ -1,7 +1,6 @@
 package uk.ac.tees.mad.bloodbond.ui.navigaion
 
 
-
 import DonorDetailScreen
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -18,11 +17,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.google.firebase.auth.FirebaseAuth
+import uk.ac.tees.mad.bloodbond.ui.screens.IdProofFullScreen
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthScreen
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthViewModel
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.DonerRegistrationScreen
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.LoginScreen
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.ReceiverSignScreen
+
 import uk.ac.tees.mad.bloodbond.ui.screens.otherScreens.HomeScreen
 
 
@@ -53,7 +54,7 @@ fun Navigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel) {
     }
 
 
-    NavHost(navController = navController, startDestination = startDestination ) {
+    NavHost(navController = navController, startDestination = startDestination) {
 
         composable<Routes.AuthScreen> {
 
@@ -109,14 +110,12 @@ fun Navigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel) {
         composable<Routes.HomeScreen> {
 
 
-
-
             HomeScreen(
 
                 authViewModel = authViewModel,
                 navController = navController,
 
-            )
+                )
 
         }
 
@@ -130,16 +129,20 @@ fun Navigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel) {
                 mobile = args.mobile,
                 bloodGroup = args.bloodGroup,
                 date = args.date,
-                imageUrl = args.imageUrl,
+                url = args.idImageUrl,
                 uid = args.uid,
-
+                navController = navController
             )
 
         }
 
+        composable<Routes.IdProofFullScreen> {
 
+            val args = it.toRoute<Routes.IdProofFullScreen>()
 
+            IdProofFullScreen(args.url)
 
+        }
 
 
     }

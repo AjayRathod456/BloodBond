@@ -71,6 +71,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
 import uk.ac.tees.mad.bloodbond.R
+import uk.ac.tees.mad.bloodbond.converter.uriToByteArray
 import uk.ac.tees.mad.bloodbond.ui.navigaion.Routes
 import java.io.File
 import java.util.Calendar
@@ -571,31 +572,36 @@ fun DonerRegistrationScreen(
 
                         } else {
 
+                            val imageByte = selectedImageUri?.uriToByteArray(context)
+                            imageByte?.let {
 
-                            authViewModel.signUp(
-                                title = title,
-                                bloodGroup = selectedBloodGroup,
-                                uri = uri,
-                                email = email,
-                                password = password,
-                                date = selectedDate,
-                                mobile = mobile,
-                                name = name,
-                                context = context,
-                                onSuccess = { message, booleanValue ->
+                                authViewModel.signUp(
+                                    title = title,
+                                    bloodGroup = selectedBloodGroup,
+                                    email = email,
+                                    password = password,
+                                    date = selectedDate,
+                                    mobile = mobile,
+                                    name = name,
+                                    onResult= { message, booleanValue ->
 
-                                    if (booleanValue) {
-                                        navController.navigate(Routes.HomeScreen)
-                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                                    } else {
+                                        if (booleanValue) {
+                                            navController.navigate(Routes.HomeScreen)
+                                            Toast.makeText(context, message, Toast.LENGTH_SHORT)
+                                                .show()
+                                        } else {
 
 
-                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                                    }
+                                            Toast.makeText(context, message, Toast.LENGTH_SHORT)
+                                                .show()
+                                        }
 
-                                }
+                                    },
+                                    byteArray = it,
 
-                            )
+                                )
+                            }
+
 
                         }
 

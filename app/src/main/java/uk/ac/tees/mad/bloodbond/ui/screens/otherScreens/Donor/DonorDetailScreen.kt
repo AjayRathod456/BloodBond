@@ -29,6 +29,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import uk.ac.tees.mad.bloodbond.ui.navigaion.Routes
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,7 +42,9 @@ fun DonorDetailScreen(
     mobile: String,
     bloodGroup: String,
     date: String,
-    imageUrl: String,
+    url: String,
+
+    navController: NavController
 ) {
 
     val context = LocalContext.current
@@ -152,7 +156,10 @@ fun DonorDetailScreen(
 
             // View ID Proof Button
             ElevatedButton(
-                onClick = { /* TODO: Show ID Proof */ },
+                onClick = {
+                    navController.navigate(Routes.IdProofFullScreen( url))
+
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),

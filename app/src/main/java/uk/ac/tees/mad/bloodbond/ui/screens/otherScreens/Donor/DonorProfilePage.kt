@@ -1,3 +1,4 @@
+
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
@@ -69,10 +70,10 @@ fun DonorProfilePage(
     viewModel: AuthViewModel,
 
     ) {
-    val donor = viewModel.currentUserData.collectAsState().value
+    val currentUser = viewModel.currentUserData.collectAsState().value
     LaunchedEffect(Unit) {
         viewModel.fetchCurrentDonerData()
-        viewModel.fetchDonerDataList(donor.uid)
+        viewModel.fetchDonerDataList(currentUser.uid)
 
     }
     var update by remember { mutableStateOf(false) }
@@ -146,26 +147,36 @@ fun DonorProfilePage(
                 .padding(innerPadding)
                 .padding(20.dp), contentAlignment = Alignment.TopCenter
         ) {
-            if (donor != null) {
+            if (currentUser != null) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top,
                     modifier = Modifier.fillMaxSize()
                 ) {
                     Box(contentAlignment = Alignment.BottomEnd) {
-                        if (donor.imageUrl.isNotEmpty() || selectedImageUri != null) {
+                        if (selectedImageUri != null) {
+
                             AsyncImage(
-                                model = if (selectedImageUri != null) selectedImageUri else donor.imageUrl,
+                                model = selectedImageUri,
                                 contentDescription = "Profile Image",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .size(100.dp)
                                     .clip(CircleShape)
                             )
+                        } else if (currentUser.profileImageUrl.isNotEmpty()) {
 
+                            AsyncImage(
+                                model = currentUser.profileImageUrl + "?t=${System.currentTimeMillis()}",
+                                contentDescription = "Profile Image",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(100.dp)
+                                    .clip(CircleShape)
+                            )
                         } else {
                             AsyncImage(
-                                model = "https://www.dsmpartnership.com/filesimages/BLOGS/2021%20Author%20Profile%20Pics/AuthorProfileImage-01.jpg?timestamp=1692129165649",
+                                model = "https://www.dsmpartnership.com/filesimages/BLOGS/2021%20Author%20Profile%20Pics/AuthorProfileImage-01.jpg",
                                 contentDescription = "Profile Image",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
@@ -290,7 +301,7 @@ fun DonorProfilePage(
                                 )
                             } else {
                                 Text(
-                                    text = donor.name,
+                                    text = currentUser.name,
                                     style = MaterialTheme.typography.titleMedium,
                                     color = Color.Black
                                 )
@@ -338,7 +349,7 @@ fun DonorProfilePage(
                                 )
                             } else {
                                 Text(
-                                    text = donor.mobNumber,
+                                    text = currentUser.mobNumber,
                                     style = MaterialTheme.typography.titleMedium,
                                     color = Color.Black
                                 )
@@ -438,7 +449,7 @@ fun DonorProfilePage(
                                 )
                             } else {
                                 Text(
-                                    text = donor.bloodGroup,
+                                    text = currentUser.bloodGroup,
                                     style = MaterialTheme.typography.titleMedium,
                                     color = Color.Black
                                 )
@@ -467,13 +478,15 @@ fun DonorProfilePage(
                                     val imageByte = selectedImageUri?.uriToByteArray(context)
                                     imageByte
                                         ?.let {
+
+
                                             viewModel.updateData(
 
 
-                                                bloodGroup = if (newselectedBloodGroup.isNotBlank()) newselectedBloodGroup else donor.bloodGroup,
-                                                name = if (newname.isNotBlank()) newname else donor.name,
-                                                mobNumber = if (newMobile.isNotBlank()) newMobile else donor.mobNumber,
-                                                lastDate = if (newLastDate.isNotBlank()) newLastDate else donor.lastDate.lastOrNull()?: latestDate,
+                                                bloodGroup = if (newselectedBloodGroup.isNotBlank()) newselectedBloodGroup else currentUser.bloodGroup,
+                                                name = if (newname.isNotBlank()) newname else currentUser.name,
+                                                mobNumber = if (newMobile.isNotBlank()) newMobile else currentUser.mobNumber,
+                                                lastDate = if (newLastDate.isNotBlank()) newLastDate else currentUser.lastDate.lastOrNull()?: latestDate,
                                                 profileByteArray = imageByte
                                             )
 
