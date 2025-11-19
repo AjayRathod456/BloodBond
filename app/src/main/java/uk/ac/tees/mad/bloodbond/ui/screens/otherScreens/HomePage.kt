@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,7 +34,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -42,9 +45,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import kotlinx.coroutines.delay
 import uk.ac.tees.mad.bloodbond.ui.navigaion.Routes
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthViewModel
-import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.DonerData
+import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.DonorData
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,11 +57,26 @@ fun HomePage(viewModel: AuthViewModel, navController: NavController) {
     var selectedGroup by remember { mutableStateOf("All") }
     val donors = viewModel.donorDataListForBlood.collectAsState().value
 
+    var isEmpty by rememberSaveable { mutableStateOf(false) }
+    var text by rememberSaveable { mutableStateOf("") }
+
     // Trigger fetch once
     LaunchedEffect(selectedGroup) {
         viewModel.fetchDonerDataList(
             bloodGroup = selectedGroup
         )
+    }
+    LaunchedEffect(selectedGroup) {
+        isEmpty = true
+        delay(3000)
+        isEmpty = false
+        text = "No donor available for this blood group"
+        delay(2000)
+        isEmpty = true
+        delay(1000)
+        isEmpty = false
+        text = "Try a different blood group"
+
     }
 
 
@@ -77,8 +97,7 @@ fun HomePage(viewModel: AuthViewModel, navController: NavController) {
                         color = MaterialTheme.colorScheme.onPrimary,
                         style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
                     )
-                },
-                actions = {
+                }, actions = {
                     // Blood Group Filter with down arrow
                     var expanded by remember { mutableStateOf(false) }
                     val groups = listOf("All", "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-")
@@ -86,8 +105,7 @@ fun HomePage(viewModel: AuthViewModel, navController: NavController) {
                     Box {
                         TextButton(onClick = { expanded = true }) {
                             Text(
-                                selectedGroup,
-                                color = MaterialTheme.colorScheme.onPrimary
+                                selectedGroup, color = MaterialTheme.colorScheme.onPrimary
                             )
                             Icon(
                                 imageVector = if (expanded) Icons.Filled.KeyboardArrowUp
@@ -104,7 +122,8 @@ fun HomePage(viewModel: AuthViewModel, navController: NavController) {
                                 .background(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     shape = RoundedCornerShape(24.dp)
-                                ), shape = RoundedCornerShape(24.dp)
+                                ),
+                            shape = RoundedCornerShape(24.dp)
                         ) {
                             groups.forEach { group ->
                                 DropdownMenuItem(
@@ -116,8 +135,7 @@ fun HomePage(viewModel: AuthViewModel, navController: NavController) {
                                             color = MaterialTheme.colorScheme.onPrimary,
                                             modifier = Modifier.padding(start = 8.dp)
                                         )
-                                    },
-                                    onClick = {
+                                    }, onClick = {
                                         selectedGroup = group
                                         expanded = false
                                     }, modifier = Modifier
@@ -130,49 +148,65 @@ fun HomePage(viewModel: AuthViewModel, navController: NavController) {
                             }
                         }
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
+                }, colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color(0xFFFC3E3E)
                 )
             )
-        }
-    ) { innerPadding ->
+        }) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(backgroundBrush)
-                .padding(innerPadding)
+                .padding(innerPadding),
+            contentAlignment = Alignment.Center // center for loader
+
         ) {
+            if (donors.isEmpty()) {
 
 
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                items(donors) { donor ->
-                    DonorItem(donor, onClick = {
+                if (isEmpty) {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else  {
+                    Text(
+                        text = text,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Black
+                    )
+                }
 
-                        val latestDate = donor.lastDate
-                            .map { it.toString() }
-                            .sorted()
-                            .lastOrNull()
-                            ?: "No date"
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ) {
+                    items(donors) { donor ->
+                        DonorItem(donor, onClick = {
 
-                        navController.navigate(
-                            Routes.DonorDetail(
-                                name = it.name,
-                                mobile = it.mobNumber,
-                                bloodGroup = it.bloodGroup,
-                                date = latestDate,
-                                idImageUrl = it.idImageUrl,
-                                uid = it.uid
+                            val latestDate =
+                                donor.lastDate.map { it.toString() }.sorted().lastOrNull()
+                                    ?: "No date"
+
+                            navController.navigate(
+                                Routes.DonorDetail(
+                                    name = it.name,
+                                    mobile = it.mobNumber,
+                                    bloodGroup = it.bloodGroup,
+                                    date = latestDate,
+                                    idImageUrl = it.idImageUrl,
+                                    uid = it.uid
+                                )
                             )
-                        )
-                    })
-                    Spacer(modifier = Modifier.height(12.dp))
+                        })
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                 }
             }
+
+
         }
     }
 }
@@ -180,8 +214,8 @@ fun HomePage(viewModel: AuthViewModel, navController: NavController) {
 
 @Composable
 fun DonorItem(
-    donor: DonerData,
-    onClick: (DonerData) -> Unit = {}, // callback when clicked
+    donor: DonorData,
+    onClick: (DonorData) -> Unit = {}, // callback when clicked
 ) {
     Card(
         modifier = Modifier
@@ -199,8 +233,7 @@ fun DonorItem(
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xFFFFC1C1),
-                            Color(0xFFFFE4E4)
+                            Color(0xFFFFC1C1), Color(0xFFFFE4E4)
                         )
                     )
                 )
@@ -208,7 +241,8 @@ fun DonorItem(
         ) {
             Text(
                 text = donor.name,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onPrimary
             )
 
             Spacer(modifier = Modifier.height(6.dp))

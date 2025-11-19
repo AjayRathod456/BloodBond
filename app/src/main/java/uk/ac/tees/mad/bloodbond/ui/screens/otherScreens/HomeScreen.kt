@@ -62,7 +62,7 @@ fun HomeScreen(
 
         bottomBar = {
             NavigationBar(
-                modifier = Modifier.height(65.dp),
+                modifier = Modifier.height(70.dp),
                 containerColor = Color(0xFFFC3E3E)
             ) {
 
@@ -71,7 +71,9 @@ fun HomeScreen(
                     val iconColor = if (isSelected) Color.White else Color.Black
 
                     NavigationBarItem(
-                        selected = false, onClick = {
+                        modifier = Modifier.offset(y = 10.dp),
+                        selected = false,
+                        onClick = {
                             selectedIndex = index
                         }, icon = {
                             Icon(

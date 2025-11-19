@@ -1,8 +1,6 @@
 package uk.ac.tees.mad.bloodbond.ui.screens.authScreen
 
 
-
-
 import android.app.Activity
 import android.net.Uri
 import android.widget.Toast
@@ -17,8 +15,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalTextStyle
@@ -31,7 +31,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,7 +50,7 @@ import uk.ac.tees.mad.bloodbond.ui.navigaion.Routes
 fun ReceiverSignScreen(
     navController: NavController,
     title: String,
-    viewModel: AuthViewModel
+    viewModel: AuthViewModel,
 
 
     ) {
@@ -64,7 +64,7 @@ fun ReceiverSignScreen(
     )
     val context = LocalContext.current
 
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedImageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
 
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -85,13 +85,14 @@ fun ReceiverSignScreen(
             }
         })
 
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var expanded by remember { mutableStateOf(false) }
+    var name by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var expanded by rememberSaveable { mutableStateOf(false) }
     val bloodGroups = listOf("A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-")
-    var selectedBloodGroup by remember { mutableStateOf("") }
-    var showDialog by remember { mutableStateOf(false) }
+    var selectedBloodGroup by rememberSaveable { mutableStateOf("") }
+    var showDialog by rememberSaveable { mutableStateOf(false) }
+    var isLoading by rememberSaveable { mutableStateOf(false) }
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -206,10 +207,10 @@ fun ReceiverSignScreen(
                             Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT)
                                 .show()
                         } else {
-
+                            isLoading = false
                             viewModel.ResSignUp(
                                 title = title,
-                                name = name ,
+                                name = name,
                                 email = email,
                                 password = password,
                                 onSuccess = { message, booleanValue ->
@@ -221,10 +222,8 @@ fun ReceiverSignScreen(
 
                                         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                     }
-                                }
-                            )
-
-
+                                })
+                            isLoading = false
 
                         }
 
@@ -240,12 +239,21 @@ fun ReceiverSignScreen(
 
                         )
                 ) {
-                    Text(
-                        "Sign Up",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.Black,
+                            strokeWidth = 2.dp,
+                            modifier = Modifier
+                                .size(30.dp)
+                        )
+                    } else {
+                        Text(
+                            "Sign Up",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
                 }
 
                 Spacer(Modifier.height(20.dp))

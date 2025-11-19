@@ -26,6 +26,7 @@ fun ProfileScreen(navController: NavController, viewModel: AuthViewModel) {
 
     val currentUser = viewModel.currentUserData.collectAsState().value
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+
         if (currentUser.title == "Donor") {
             DonorProfilePage(viewModel = viewModel)
 

@@ -1,9 +1,10 @@
-
 import android.app.Activity
+import android.content.ContentResolver
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -59,6 +60,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import uk.ac.tees.mad.bloodbond.R
 import uk.ac.tees.mad.bloodbond.converter.uriToByteArray
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthViewModel
 
@@ -70,27 +77,29 @@ fun DonorProfilePage(
     viewModel: AuthViewModel,
 
     ) {
-    val currentUser = viewModel.currentUserData.collectAsState().value
-    LaunchedEffect(Unit) {
-        viewModel.fetchCurrentDonerData()
-        viewModel.fetchDonerDataList(currentUser.uid)
 
-    }
     var update by remember { mutableStateOf(false) }
 
+    LaunchedEffect(Unit) {
 
-    val lastDates = viewModel.lastDates.collectAsState().value
+        viewModel.fetchCurrentDonerData()
 
-    val latestDate = lastDates
-        .maxByOrNull { it.split("/").reversed().joinToString("") } // works for dd/MM/yyyy
-        ?: "No date"
+    }
 
-    var isEditing by remember { mutableStateOf(false) }
+    val currentUser = viewModel.currentUserData.collectAsState().value
+
+    Log.d("ggf", currentUser.profileImageUrl)
+
+
+    val latestDate = currentUser.lastDate.lastOrNull() ?: "No date"
+
+    var isEditing by rememberSaveable { mutableStateOf(false) }
 
     var newMobile by rememberSaveable { mutableStateOf("") }
     var newname by rememberSaveable { mutableStateOf("") }
     var newLastDate by rememberSaveable { mutableStateOf("") }
     var newselectedBloodGroup by rememberSaveable { mutableStateOf("") }
+    var isLoading by rememberSaveable { mutableStateOf(false) }
 
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(
@@ -107,7 +116,34 @@ fun DonorProfilePage(
 
 
 // URI
+    val defaultUri = Uri.parse(
+        "${ContentResolver.SCHEME_ANDROID_RESOURCE}://${context.packageName}/${R.drawable.default_profile}"
+    )
+
+
+// URI
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+
+    val uri: Uri = if (selectedImageUri == null) {
+        defaultUri
+    } else {
+        selectedImageUri!!
+    }
+
+    val freshUrl = "${currentUser.profileImageUrl}?t=${System.currentTimeMillis()}"
+
+    val imageRequest = ImageRequest.Builder(context)
+        .data(freshUrl)
+        .crossfade(true)
+        .diskCachePolicy(CachePolicy.ENABLED)
+        .memoryCachePolicy(CachePolicy.ENABLED)
+        .build()
+
+
+    val painter = rememberAsyncImagePainter(model = imageRequest)
+    val state by painter.state.collectAsState()
+
 
 //android 13
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -164,25 +200,43 @@ fun DonorProfilePage(
                                     .size(100.dp)
                                     .clip(CircleShape)
                             )
-                        } else if (currentUser.profileImageUrl.isNotEmpty()) {
+                        } else if (state is AsyncImagePainter.State.Loading) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.size(100.dp)
+                            ) {
+                                AsyncImage(
+                                    model = "https://www.dsmpartnership.com/filesimages/BLOGS/2021%20Author%20Profile%20Pics/AuthorProfileImage-01.jpg",
+                                    contentDescription = "Profile Image",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(100.dp)
+                                        .clip(CircleShape)
+                                )
+
+
+                                CircularProgressIndicator(
+                                    color = Color.Black,
+
+                                    strokeWidth = 2.dp,
+                                    modifier = Modifier.size(30.dp)
+
+                                )
+                            }
+
+
+                        } else {
+
 
                             AsyncImage(
-                                model = currentUser.profileImageUrl + "?t=${System.currentTimeMillis()}",
+                                model = imageRequest,
                                 contentDescription = "Profile Image",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .size(100.dp)
                                     .clip(CircleShape)
                             )
-                        } else {
-                            AsyncImage(
-                                model = "https://www.dsmpartnership.com/filesimages/BLOGS/2021%20Author%20Profile%20Pics/AuthorProfileImage-01.jpg",
-                                contentDescription = "Profile Image",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(100.dp)
-                                    .clip(CircleShape)
-                            )
+
                         }
                         if (isEditing) {
                             IconButton(
@@ -475,23 +529,31 @@ fun DonorProfilePage(
 
                             Button(
                                 onClick = {
-                                    val imageByte = selectedImageUri?.uriToByteArray(context)
-                                    imageByte
-                                        ?.let {
+
+                                    val imageByte = uri.uriToByteArray(context)
+
+                                    isLoading = true
+                                    imageByte?.let {
+
+                                        viewModel.updateData(
 
 
-                                            viewModel.updateData(
+                                            bloodGroup = if (newselectedBloodGroup.isNotBlank()) newselectedBloodGroup else currentUser.bloodGroup,
+                                            name = if (newname.isNotBlank()) newname else currentUser.name,
+                                            mobNumber = if (newMobile.isNotBlank()) newMobile else currentUser.mobNumber,
+                                            lastDate = if (newLastDate.isNotBlank()) newLastDate else currentUser.lastDate.lastOrNull()
+                                                ?: latestDate,
+                                            profileByteArray = imageByte
 
 
-                                                bloodGroup = if (newselectedBloodGroup.isNotBlank()) newselectedBloodGroup else currentUser.bloodGroup,
-                                                name = if (newname.isNotBlank()) newname else currentUser.name,
-                                                mobNumber = if (newMobile.isNotBlank()) newMobile else currentUser.mobNumber,
-                                                lastDate = if (newLastDate.isNotBlank()) newLastDate else currentUser.lastDate.lastOrNull()?: latestDate,
-                                                profileByteArray = imageByte
-                                            )
+                                        )
+
+                                        isLoading = false
+                                    }
 
 
-                                        }
+
+
 
                                     isEditing = false
                                     update = !update
@@ -503,10 +565,21 @@ fun DonorProfilePage(
                                     containerColor = Color(0xFFFF3737)
                                 )
                             ) {
-                                Text(
-                                    text = "Update",
-                                    color = Color.Black
-                                )
+                                if (isLoading) {
+                                    CircularProgressIndicator(
+                                        color = Color.Black,
+                                        strokeWidth = 2.dp,
+                                        modifier = Modifier
+                                            .size(20.dp)
+                                    )
+                                } else {
+                                    Text(
+                                        "Update",
+
+
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                }
                             }
                         }
 

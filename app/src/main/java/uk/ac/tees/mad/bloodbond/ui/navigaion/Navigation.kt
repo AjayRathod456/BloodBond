@@ -140,7 +140,7 @@ fun Navigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel) {
 
             val args = it.toRoute<Routes.IdProofFullScreen>()
 
-            IdProofFullScreen(args.url)
+            IdProofFullScreen(args.url, onBack = {navController.popBackStack()})
 
         }
 

@@ -29,6 +29,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -57,6 +58,7 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.androidx.compose.material)
     implementation(libs.ui)
+    implementation(libs.material3)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -83,5 +85,6 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:compose-auth-ui:1.3.2")
     implementation("io.github.jan-tennert.supabase:storage-kt:1.3.2")
     implementation("io.ktor:ktor-client-cio:2.3.4")
+    implementation("com.google.firebase:firebase-messaging:24.0.0")
 
 }

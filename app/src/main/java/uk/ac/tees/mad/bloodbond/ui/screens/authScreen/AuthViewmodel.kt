@@ -19,21 +19,24 @@ import uk.ac.tees.mad.bloodbond.utils.SupabaseClientProvider
 class AuthViewModel : ViewModel() {
 
 
-    private val _donorDataListForBlood = MutableStateFlow<List<DonerData>>(emptyList())
-    val donorDataListForBlood: StateFlow<List<DonerData>> = _donorDataListForBlood
+    private val _donorDataListForBlood = MutableStateFlow<List<DonorData>>(emptyList())
+    val donorDataListForBlood: StateFlow<List<DonorData>> = _donorDataListForBlood
 
 
-    private val _donorList = MutableStateFlow<List<DonerData>>(emptyList())
-    val donorList: StateFlow<List<DonerData>> = _donorList
 
 
-    private val _currentUserData = MutableStateFlow(DonerData())
 
-    val currentUserData: StateFlow<DonerData> = _currentUserData
+    private val _currentUserData = MutableStateFlow(DonorData())
+
+    val currentUserData: StateFlow<DonorData> = _currentUserData
+
 
 
     val db = FirebaseFirestore.getInstance()
     val auth: FirebaseAuth = FirebaseAuth.getInstance()
+
+    private val _isLoading = MutableStateFlow(false)   // private mutable
+    val isLoading: StateFlow<Boolean> = _isLoading     // public immutable
 
 
     fun logoutUser() {
@@ -54,28 +57,28 @@ class AuthViewModel : ViewModel() {
             val fileName = "profile_images/$userId.jpg" // unique image per user
 
             try {
+                    val bucket = SupabaseClientProvider.client.storage["profile_images"]
+                    bucket.upload(fileName, profileByteArray, upsert = true)
+                    val profileImageUrl = bucket.publicUrl(fileName)
+                    val updates = mapOf(
+                        "profileImageUrl" to profileImageUrl,
+                        "bloodGroup" to bloodGroup,
+                        "name" to name,
+                        "mobNumber" to mobNumber,
+                        "lastDate" to FieldValue.arrayUnion(lastDate) // append to array
+                    )
 
-                val bucket = SupabaseClientProvider.client.storage["profile_images"]
-                bucket.upload(fileName, profileByteArray, upsert = true)
-                val profileImageUrl = bucket.publicUrl(fileName)
+                    db.collection("doner")
+                        .document(userId)
+                        .update(updates)
+                        .addOnSuccessListener {
+                            Log.d("FIRESTORE_UPDATE", "User data updated successfully")
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("FIRESTORE_UPDATE", "Error updating user data", e)
+                        }
 
-                val updates = mapOf(
-                    "profileImageUrl" to profileImageUrl,
-                    "bloodGroup" to bloodGroup,
-                    "name" to name,
-                    "mobNumber" to mobNumber,
-                    "lastDate" to FieldValue.arrayUnion(lastDate) // append to array
-                )
 
-                db.collection("doner")
-                    .document(userId)
-                    .update(updates)
-                    .addOnSuccessListener {
-                        Log.d("FIRESTORE_UPDATE", "User data updated successfully")
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("FIRESTORE_UPDATE", "Error updating user data", e)
-                    }
 
             } catch (e: Exception) {
                 Log.e("FIRESTORE_UPDATE", "Exception updating user data", e)
@@ -114,7 +117,10 @@ class AuthViewModel : ViewModel() {
 
 
                                     } catch (e: Exception) {
-                                        onResult("Image upload failed: ${e.localizedMessage}", false)
+                                        onResult(
+                                            "Image upload failed: ${e.localizedMessage}",
+                                            false
+                                        )
                                     }
                                 }
 
@@ -274,7 +280,7 @@ class AuthViewModel : ViewModel() {
                 val snapshot = query.get().await()
 
                 val donors = snapshot.documents.mapNotNull { doc ->
-                    val donor = doc.toObject(DonerData::class.java) ?: return@mapNotNull null
+                    val donor = doc.toObject(DonorData::class.java) ?: return@mapNotNull null
                     val safeLastDate = donor.lastDate
                         .map { it.toString() } // ensure strings
                         .sortedBy { it } // sort if needed
@@ -290,20 +296,27 @@ class AuthViewModel : ViewModel() {
     }
 
 
-    fun fetchCurrentDonerData() = viewModelScope.launch {
+    fun fetchCurrentDonerData() {
         auth.currentUser?.uid?.let { userId ->
-            try {
-                val snapshot = db.collection("doner").document(userId).get().await()
-                val data = snapshot.toObject(DonerData::class.java)
+            _isLoading.value = true   // start loading
+            db.collection("doner").document(userId)
+                .addSnapshotListener { snapshot, e ->
+                    _isLoading.value = false   // start loading
+                    if (e != null) {
 
-                data?.let {
-                    _currentUserData.value = it
+                        return@addSnapshotListener
+                    }
+
+                    if (snapshot != null && snapshot.exists()) {
+                        val data = snapshot.toObject(DonorData::class.java)
+                        data?.let {
+                            _currentUserData.value = it
+                        }
+                    }
                 }
-            } catch (e: Exception) {
-                Log.e("Firestore", "Error fetching current donor data", e)
-            }
         }
     }
+
 
 
     private val _lastDates = MutableStateFlow<List<String>>(emptyList())
@@ -357,7 +370,7 @@ data class ResInfo(
 
     )
 
-data class DonerData(
+data class DonorData(
     val idImageUrl: String = "",
     val profileImageUrl: String = "",
     val title: String = "",
@@ -368,6 +381,7 @@ data class DonerData(
     val uid: String = "",
     val passkey: String = "",
     val lastDate: List<String> = emptyList<String>(),
+
 )
 
 

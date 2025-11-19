@@ -1,4 +1,7 @@
+
+
 import android.app.Activity
+import android.content.ContentResolver
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -58,6 +61,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import uk.ac.tees.mad.bloodbond.R
 import uk.ac.tees.mad.bloodbond.converter.uriToByteArray
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthViewModel
 
@@ -70,24 +74,35 @@ fun ReceiverProfilePage(
     ) {
 
     val currentUser = viewModel.currentUserData.collectAsState().value
+    var update by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
 
-        viewModel.fetchDonerDataList(currentUser.uid)
+        viewModel.fetchCurrentDonerData()
 
     }
-    var update by remember { mutableStateOf(false) }
 
 
-    val lastDates = viewModel.lastDates.collectAsState().value
 
-    val latestDate = lastDates
-        .maxByOrNull { it.split("/").reversed().joinToString("") } // works for dd/MM/yyyy
-        ?: "No date"
 
-    var isEditing by remember { mutableStateOf(false) }
+
+
+
+
+
+
+
+
+
+
+
+    var isEditing by rememberSaveable  { mutableStateOf(false) }
 
     var newMobile by rememberSaveable { mutableStateOf("") }
+
     var newname by rememberSaveable { mutableStateOf("") }
+
+    var isLoading by rememberSaveable { mutableStateOf(false) }
+
 
 
     val backgroundBrush = Brush.verticalGradient(
@@ -103,9 +118,21 @@ fun ReceiverProfilePage(
 
     val context = LocalContext.current
 
+// URI
+    val defaultUri = Uri.parse(
+        "${ContentResolver.SCHEME_ANDROID_RESOURCE}://${context.packageName}/${R.drawable.default_profile}"
+    )
+
 
 // URI
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+
+    val uri: Uri = if (selectedImageUri == null) {
+        defaultUri
+    } else {
+        selectedImageUri!!
+    }
 
 //android 13
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -146,6 +173,9 @@ fun ReceiverProfilePage(
                 .padding(20.dp), contentAlignment = Alignment.TopCenter
         ) {
             if (currentUser != null) {
+
+
+
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top,
@@ -163,25 +193,41 @@ fun ReceiverProfilePage(
                                     .size(100.dp)
                                     .clip(CircleShape)
                             )
-                        } else if (currentUser.profileImageUrl.isNotEmpty()) {
+                        } else if (currentUser.profileImageUrl.isEmpty()) {
 
-                            AsyncImage(
-                                model = currentUser.profileImageUrl + "?t=${System.currentTimeMillis()}",
-                                contentDescription = "Profile Image",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(100.dp)
-                                    .clip(CircleShape)
-                            )
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.size(100.dp)
+                            ) {
+                                AsyncImage(
+                                    model = "https://www.dsmpartnership.com/filesimages/BLOGS/2021%20Author%20Profile%20Pics/AuthorProfileImage-01.jpg",
+                                    contentDescription = "Profile Image",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(100.dp)
+                                        .clip(CircleShape)
+                                )
+
+
+                                CircularProgressIndicator(
+                                    color = Color.Black,
+
+                                    strokeWidth = 2.dp,
+                                    modifier = Modifier.size(30.dp)
+
+                                )
+                            }
+
                         } else {
                             AsyncImage(
-                                model = "https://www.dsmpartnership.com/filesimages/BLOGS/2021%20Author%20Profile%20Pics/AuthorProfileImage-01.jpg",
+                                model = currentUser.profileImageUrl ,
                                 contentDescription = "Profile Image",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .size(100.dp)
                                     .clip(CircleShape)
                             )
+
                         }
 
 
@@ -386,21 +432,27 @@ fun ReceiverProfilePage(
                                 onClick = {
 
 //
-                                   val imageByte = selectedImageUri?.uriToByteArray(context)
-
+                                    val imageByte = uri.uriToByteArray(context)
 
                                     imageByte?.let {
+
+                                        isLoading = true
                                         viewModel.updateData(
 
                                             name = if (newname.isNotBlank()) newname else currentUser.name,
                                             mobNumber = if (newMobile.isNotBlank()) newMobile else currentUser.mobNumber,
                                             bloodGroup = "",
                                             lastDate = "",
-                                            profileByteArray = it,
+                                            profileByteArray = imageByte,
                                         )
+
+                                        isLoading = false
                                     }
 
+
+
                                     isEditing = false
+
                                     update = !update
 
 
@@ -410,10 +462,21 @@ fun ReceiverProfilePage(
                                     containerColor = Color(0xFFFF3737)
                                 )
                             ) {
-                                Text(
-                                    text = "Update",
-                                    color = Color.Black
-                                )
+                                if (isLoading) {
+                                    CircularProgressIndicator(
+                                        color = Color.Black,
+                                        strokeWidth = 2.dp,
+                                        modifier = Modifier
+                                            .size(20.dp)
+                                    )
+                                } else {
+                                    Text(
+                                        "Update",
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                }
                             }
                         }
 

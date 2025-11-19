@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -51,6 +53,7 @@ fun LoginScreen(title: String, navController: NavController,viewModel: AuthViewM
 
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
+    var isLoading by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
 
     Surface(modifier = Modifier.fillMaxSize()) {
@@ -126,6 +129,7 @@ fun LoginScreen(title: String, navController: NavController,viewModel: AuthViewM
 
                 ElevatedButton(
                     onClick = {
+                        isLoading = true
                         viewModel.logIn(
                             email = email,
                             passkey = password,
@@ -142,6 +146,8 @@ fun LoginScreen(title: String, navController: NavController,viewModel: AuthViewM
                                 }
                             }
                         )
+
+                        isLoading = false
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -152,12 +158,21 @@ fun LoginScreen(title: String, navController: NavController,viewModel: AuthViewM
                         containerColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 ) {
-                    Text(
-                        "Log In $title",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.Black,
+                            strokeWidth = 2.dp,
+                            modifier = Modifier
+                                .size(30.dp)
+                        )
+                    } else {
+                        Text(
+                            "Log in",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
                 }
 
                 Spacer(Modifier.height(20.dp))

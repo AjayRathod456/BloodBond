@@ -1,19 +1,34 @@
 package uk.ac.tees.mad.bloodbond.ui.screens.authScreen
 
-import android.R.attr.fontWeight
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Person
-
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,12 +36,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import okhttp3.Route
 import uk.ac.tees.mad.bloodbond.ui.navigaion.Routes
 
 
@@ -193,11 +205,10 @@ private fun RoleOption(
 
 
             ElevatedButton(
-                onClick =
-
-                    onClick,
+                onClick = onClick,
                 modifier = Modifier
-                    .width(100.dp)
+                    .wrapContentWidth() // ✅ Let width adapt to text
+                    .height(45.dp)      // ✅ Keep consistent height
                     .border(
                         width = 1.dp,
                         color = MaterialTheme.colorScheme.onPrimary,
@@ -205,30 +216,20 @@ private fun RoleOption(
                     ),
                 shape = RoundedCornerShape(10.dp),
                 elevation = null,
-
-
                 colors = ButtonDefaults.elevatedButtonColors(
                     containerColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
                 Text(
-                    "Select",
-                    fontSize = 20.sp,
+                    text = "Select",
+                    fontSize = 16.sp, // ✅ Slightly smaller for better fit
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onPrimary
-
                 )
             }
+
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun PreviewDonorReceiverSelectionScreen() {
-    MaterialTheme {
-
     }
 }
 

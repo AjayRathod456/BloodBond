@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedButton
@@ -75,6 +76,7 @@ import uk.ac.tees.mad.bloodbond.converter.uriToByteArray
 import uk.ac.tees.mad.bloodbond.ui.navigaion.Routes
 import java.io.File
 import java.util.Calendar
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -187,6 +189,7 @@ fun DonerRegistrationScreen(
     var expanded by rememberSaveable { mutableStateOf(false) }
 
     var selectedBloodGroup by rememberSaveable { mutableStateOf("") }
+    var isLoading by rememberSaveable { mutableStateOf(false) }
 
 
 
@@ -565,16 +568,23 @@ fun DonerRegistrationScreen(
 
                 ElevatedButton(
                     onClick = {
-                        if (name.isBlank() || email.isBlank() || password.isBlank() || (title == "Donor" && selectedBloodGroup.isBlank()) || mobile.isBlank() || selectedDate.isBlank()) {
+                        if (
+                            name.isBlank() ||
+                            email.isBlank() ||
+                            password.isBlank() ||
+                            (title == "Donor" && selectedBloodGroup.isBlank()) ||
+                            mobile.isBlank() ||
+                            selectedDate.isBlank()
+                            ) {
 //
                             Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT)
                                 .show()
 
                         } else {
 
-                            val imageByte = selectedImageUri?.uriToByteArray(context)
+                            val imageByte = uri.uriToByteArray(context)
                             imageByte?.let {
-
+                                isLoading = true
                                 authViewModel.signUp(
                                     title = title,
                                     bloodGroup = selectedBloodGroup,
@@ -601,7 +611,7 @@ fun DonerRegistrationScreen(
 
                                 )
                             }
-
+                            isLoading = true
 
                         }
 
@@ -617,12 +627,25 @@ fun DonerRegistrationScreen(
 
                         )
                 ) {
-                    Text(
-                        "Sign Up",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
+
+
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.Black,
+                            strokeWidth = 2.dp,
+                            modifier = Modifier
+                                .size(30.dp)
+                        )
+                    } else {
+                        Text(
+                            "Sign Up",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+
+
                 }
 
                 Spacer(Modifier.height(20.dp))
@@ -637,6 +660,8 @@ fun DonerRegistrationScreen(
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.background)
                 ) {
+
+
                     Text(
                         "Already have an account? Log In",
                         color = MaterialTheme.colorScheme.onPrimary,

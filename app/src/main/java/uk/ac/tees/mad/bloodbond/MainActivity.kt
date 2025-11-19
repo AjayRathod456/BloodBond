@@ -1,5 +1,7 @@
 package uk.ac.tees.mad.bloodbond
 
+
+import android.Manifest
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -13,11 +15,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.app.ActivityCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.firestoreSettings
+import uk.ac.tees.mad.bloodbond.notificaion.scheduleDailyNotifications
 import uk.ac.tees.mad.bloodbond.ui.navigaion.Navigation
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthViewModel
 import uk.ac.tees.mad.bloodbond.ui.theme.BloodbondTheme
@@ -25,9 +29,11 @@ import uk.ac.tees.mad.bloodbond.ui.theme.BloodbondTheme
 class MainActivity : ComponentActivity() {
 
 
-
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
+
+
+        super.onCreate(savedInstanceState)
 
         val settings = firestoreSettings {
             isPersistenceEnabled = true
@@ -36,7 +42,18 @@ class MainActivity : ComponentActivity() {
 
         FirebaseFirestore.getInstance().firestoreSettings = settings
 
-        super.onCreate(savedInstanceState)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                101
+            )
+        }
+
+        scheduleDailyNotifications(this)
+
+
         installSplashScreen()
         enableEdgeToEdge()
 
@@ -46,8 +63,10 @@ class MainActivity : ComponentActivity() {
             BloodbondTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
 
-                    Navigation(modifier = Modifier.padding(innerPadding),
-                    authViewModel = authViewModel)
+                    Navigation(
+                        modifier = Modifier.padding(innerPadding),
+                        authViewModel = authViewModel
+                    )
 
 
                 }
