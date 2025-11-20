@@ -74,6 +74,7 @@ import androidx.navigation.NavController
 import uk.ac.tees.mad.bloodbond.R
 import uk.ac.tees.mad.bloodbond.converter.uriToByteArray
 import uk.ac.tees.mad.bloodbond.ui.navigaion.Routes
+import uk.ac.tees.mad.bloodbond.ui.screens.AuthViewModel
 import java.io.File
 import java.util.Calendar
 
@@ -122,11 +123,11 @@ fun DonerRegistrationScreen(
 // URI
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
-    val uri: Uri = if (selectedImageUri == null) {
+    val uri: Uri = (if (selectedImageUri == null) {
         defaultUri
     } else {
         selectedImageUri!!
-    }
+    }) as Uri
 
 // CAMERA
     val cameraLauncher = rememberLauncherForActivityResult(
@@ -516,7 +517,6 @@ fun DonerRegistrationScreen(
                                         cameraLauncher.launch(imageUri)
 
                                     } else {
-
                                         permissionLauncher.launch(Manifest.permission.CAMERA)
                                     }
 

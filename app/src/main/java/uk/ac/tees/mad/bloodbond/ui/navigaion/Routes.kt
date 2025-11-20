@@ -32,7 +32,6 @@ sealed class Routes {
         val name: String,
         val mobile: String,
         val bloodGroup: String,
-        val date: String,
         val uid : String
     )
     @Serializable

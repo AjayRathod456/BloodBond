@@ -20,7 +20,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -31,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import uk.ac.tees.mad.bloodbond.ui.navigaion.Routes
-import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthViewModel
+import uk.ac.tees.mad.bloodbond.ui.screens.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,18 +40,24 @@ fun DonorDetailScreen(
     name: String,
     mobile: String,
     bloodGroup: String,
-    date: String,
     url: String,
     navController: NavController
 ) {
     val context = LocalContext.current
 
-    // Fetch full donation history
-    LaunchedEffect(uid) {
-        viewModel.fetchLastDates(uid)
-    }
+
+
+
+
+
+
 
     val lastDates = viewModel.lastDates.collectAsState().value
+
+    val latestDate = lastDates
+        .sorted()
+        .lastOrNull()
+        ?: "No date"
 
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(
@@ -105,16 +110,16 @@ fun DonorDetailScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Last Donation Date (argument)
+
             Text(
-                text = "Last Donation: $date",
+                text = "Last Donation: $latestDate",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onPrimary
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Show Mobile Number
+
             Text(
                 text = "Mobile: $mobile",
                 fontSize = 18.sp,
@@ -125,7 +130,7 @@ fun DonorDetailScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Donation History Title
+
             Text(
                 text = "Donation History",
                 fontSize = 20.sp,

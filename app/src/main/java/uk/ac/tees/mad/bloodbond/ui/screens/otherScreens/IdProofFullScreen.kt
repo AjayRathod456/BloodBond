@@ -1,4 +1,4 @@
-package uk.ac.tees.mad.bloodbond.ui.screens
+package uk.ac.tees.mad.bloodbond.ui.screens.otherScreens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -16,6 +16,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 
 import androidx.compose.runtime.getValue
@@ -77,7 +78,7 @@ fun IdProofFullScreen(idImageUrl: String, onBack: () -> Unit = {}) {
                         )
                     }
                 },
-                colors = androidx.compose.material3.TopAppBarDefaults.centerAlignedTopAppBarColors(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color.Black.copy(alpha = 0.8f)
                 )
             )

@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import uk.ac.tees.mad.bloodbond.ui.navigaion.Routes
+import uk.ac.tees.mad.bloodbond.ui.screens.AuthViewModel
 
 @Composable
 fun LoginScreen(title: String, navController: NavController,viewModel: AuthViewModel) {

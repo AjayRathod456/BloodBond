@@ -17,14 +17,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.google.firebase.auth.FirebaseAuth
-import uk.ac.tees.mad.bloodbond.ui.screens.IdProofFullScreen
+import uk.ac.tees.mad.bloodbond.ui.screens.AuthViewModel
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthScreen
-import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthViewModel
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.DonerRegistrationScreen
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.LoginScreen
 import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.ReceiverSignScreen
-
 import uk.ac.tees.mad.bloodbond.ui.screens.otherScreens.HomeScreen
+import uk.ac.tees.mad.bloodbond.ui.screens.otherScreens.IdProofFullScreen
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -128,7 +127,6 @@ fun Navigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel) {
                 name = args.name,
                 mobile = args.mobile,
                 bloodGroup = args.bloodGroup,
-                date = args.date,
                 url = args.idImageUrl,
                 uid = args.uid,
                 navController = navController

@@ -67,7 +67,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import uk.ac.tees.mad.bloodbond.R
 import uk.ac.tees.mad.bloodbond.converter.uriToByteArray
-import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthViewModel
+import uk.ac.tees.mad.bloodbond.ui.screens.AuthViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)

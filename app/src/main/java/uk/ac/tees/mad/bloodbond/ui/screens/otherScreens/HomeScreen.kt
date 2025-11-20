@@ -29,7 +29,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.navigation.NavController
-import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthViewModel
+import uk.ac.tees.mad.bloodbond.ui.screens.AuthViewModel
 
 
 @RequiresApi(Build.VERSION_CODES.O)

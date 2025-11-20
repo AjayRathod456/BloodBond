@@ -33,9 +33,9 @@ class NotificationReceiver : BroadcastReceiver() {
         val message = intent?.getStringExtra("message") ?: "Stay healthy!"
 
         val notification = NotificationCompat.Builder(context, "daily_channel")
-            .setContentTitle("BloodBond") // app name
+            .setContentTitle("BloodBond")
             .setContentText(message)
-            .setSmallIcon(R.mipmap.ic_launcher) // ✅ app icon // replace with your icon
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setAutoCancel(true)
             .build()
 

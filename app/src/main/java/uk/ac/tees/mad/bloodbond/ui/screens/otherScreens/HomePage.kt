@@ -46,23 +46,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.delay
+import uk.ac.tees.mad.bloodbond.data.local.MainEntity
 import uk.ac.tees.mad.bloodbond.ui.navigaion.Routes
-import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthViewModel
-import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.DonorData
+import uk.ac.tees.mad.bloodbond.ui.screens.AuthViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomePage(viewModel: AuthViewModel, navController: NavController) {
     var selectedGroup by remember { mutableStateOf("All") }
-    val donors = viewModel.donorDataListForBlood.collectAsState().value
+
+    val donors = viewModel.donorDataListForBloodLocal.collectAsState().value
+
 
     var isEmpty by rememberSaveable { mutableStateOf(false) }
     var text by rememberSaveable { mutableStateOf("") }
 
-    // Trigger fetch once
+
     LaunchedEffect(selectedGroup) {
-        viewModel.fetchDonerDataList(
+        viewModel.fetchDonorDataList(
             bloodGroup = selectedGroup
         )
     }
@@ -168,7 +170,7 @@ fun HomePage(viewModel: AuthViewModel, navController: NavController) {
                     CircularProgressIndicator(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
-                } else  {
+                } else {
                     Text(
                         text = text,
                         fontSize = 18.sp,
@@ -186,16 +188,15 @@ fun HomePage(viewModel: AuthViewModel, navController: NavController) {
                     items(donors) { donor ->
                         DonorItem(donor, onClick = {
 
-                            val latestDate =
-                                donor.lastDate.map { it.toString() }.sorted().lastOrNull()
-                                    ?: "No date"
+                            viewModel.fetchLastDates(it.uid)
+
+
 
                             navController.navigate(
                                 Routes.DonorDetail(
                                     name = it.name,
                                     mobile = it.mobNumber,
                                     bloodGroup = it.bloodGroup,
-                                    date = latestDate,
                                     idImageUrl = it.idImageUrl,
                                     uid = it.uid
                                 )
@@ -214,8 +215,8 @@ fun HomePage(viewModel: AuthViewModel, navController: NavController) {
 
 @Composable
 fun DonorItem(
-    donor: DonorData,
-    onClick: (DonorData) -> Unit = {}, // callback when clicked
+    donor: MainEntity,
+    onClick: (MainEntity) -> Unit = {}, // callback when clicked
 ) {
     Card(
         modifier = Modifier

@@ -13,7 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
-import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthViewModel
+import uk.ac.tees.mad.bloodbond.ui.screens.AuthViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

@@ -17,3 +17,5 @@ val pink = Color(0xFFF89494)
 val BackgroundLight = Color(0xFFFFFFFF)
 val pinktransperent = Color(0xF7FA0000)
 val BackgroundDark = Color(0xFF121212)
+
+val AppPrimaryColor = Color(0xFF1565C0) // Example: Blue

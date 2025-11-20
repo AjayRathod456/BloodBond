@@ -1,5 +1,3 @@
-
-
 import android.app.Activity
 import android.content.ContentResolver
 import android.content.Intent
@@ -63,7 +61,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import uk.ac.tees.mad.bloodbond.R
 import uk.ac.tees.mad.bloodbond.converter.uriToByteArray
-import uk.ac.tees.mad.bloodbond.ui.screens.authScreen.AuthViewModel
+import uk.ac.tees.mad.bloodbond.ui.screens.AuthViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,28 +79,13 @@ fun ReceiverProfilePage(
 
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    var isEditing by rememberSaveable  { mutableStateOf(false) }
+    var isEditing by rememberSaveable { mutableStateOf(false) }
 
     var newMobile by rememberSaveable { mutableStateOf("") }
 
     var newname by rememberSaveable { mutableStateOf("") }
 
     var isLoading by rememberSaveable { mutableStateOf(false) }
-
 
 
     val backgroundBrush = Brush.verticalGradient(
@@ -175,7 +158,6 @@ fun ReceiverProfilePage(
             if (currentUser != null) {
 
 
-
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top,
@@ -220,7 +202,7 @@ fun ReceiverProfilePage(
 
                         } else {
                             AsyncImage(
-                                model = currentUser.profileImageUrl ,
+                                model = currentUser.profileImageUrl,
                                 contentDescription = "Profile Image",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier

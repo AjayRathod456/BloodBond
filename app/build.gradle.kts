@@ -3,14 +3,17 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.kotlinx.serialization)
 
-    kotlin("plugin.serialization") version "2.2.10"
+    kotlin("kapt")
+    id("com.google.dagger.hilt.android")
 
 }
 
 android {
     namespace = "uk.ac.tees.mad.bloodbond"
     compileSdk = 36
+
 
     defaultConfig {
         applicationId = "uk.ac.tees.mad.bloodbond"
@@ -26,8 +29,7 @@ android {
         release {
             isMinifyEnabled = false
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
             signingConfig = signingConfigs.getByName("debug")
         }
@@ -67,24 +69,57 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-
+    implementation(libs.kotlinx.serialization)
 
     implementation(libs.androidx.navigation.compose)
 
     implementation(libs.androidx.core.splashscreen)
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
 
-    implementation("io.coil-kt.coil3:coil-compose:3.3.0")
-    implementation("io.coil-kt.coil3:coil-network-okhttp:3.3.0")
+
+
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 
     implementation("com.google.code.gson:gson:2.11.0")
-
     implementation("io.github.jan-tennert.supabase:gotrue-kt:1.3.2")
     implementation("io.github.jan-tennert.supabase:compose-auth:1.3.2")
     implementation("io.github.jan-tennert.supabase:compose-auth-ui:1.3.2")
     implementation("io.github.jan-tennert.supabase:storage-kt:1.3.2")
     implementation("io.ktor:ktor-client-cio:2.3.4")
     implementation("com.google.firebase:firebase-messaging:24.0.0")
+
+
+
+
+
+
+
+    implementation("com.google.dagger:hilt-android:2.57.1")
+    kapt("com.google.dagger:hilt-compiler:2.57.1")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("androidx.compose.material:material-icons-extended:1.7.0")
+
+
+
+
+
+
+
+
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+    implementation("com.cloudinary:cloudinary-android:3.1.1")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.google.code.gson:gson:2.8.8")
+    implementation("io.ktor:ktor-client-okhttp:2.3.3")
+    implementation("androidx.compose.material3:material3:1.3.2")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
+    implementation("androidx.navigation:navigation-compose:2.8.0")
+    implementation("androidx.room:room-runtime:2.7.0-alpha05")
+    kapt("androidx.room:room-compiler:2.7.0-alpha05")
+    implementation("androidx.room:room-ktx:2.7.0-alpha05")
+
 
 }
